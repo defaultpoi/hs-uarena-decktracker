@@ -44,7 +44,6 @@ class ArenaRun:
     redrafts: list[Redraft] = field(default_factory=list)
 
     @property
-    @property
     def run_ended(self) -> bool:
         return self.losses >= 3
 
