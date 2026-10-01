@@ -36,7 +36,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     # Simulate a later redraft state: only C is demonstrably removed.
     lines += [
         f"D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
-        for card in "CFGHIXYZQW"
+        for card in "FGHIXYZQW"
     ]
     lines += [
         "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card R",
