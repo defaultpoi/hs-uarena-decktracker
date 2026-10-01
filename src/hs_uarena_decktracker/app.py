@@ -31,7 +31,8 @@ def redraft_state(redraft: Redraft) -> str:
     if redraft.ended_at is None:
         return (
             f"REDRAFT #{redraft.number} — IN PROGRESS\n"
-            f"Selected ({selected_count}/5): {selected}"
+            f"Selected ({selected_count}/5): {selected}\n"
+            "Discarded: waiting for resulting deck"
         )
 
     if redraft.discarded:
