@@ -59,6 +59,7 @@ class ArenaLogParser:
         redraft_started: str | None = None
         redraft_selected: list[Card] = []
         redraft_before_snapshot_indices: list[int] = []
+        redraft_after_snapshot_starts: list[int] = []
 
         def finish_snapshot() -> None:
             nonlocal snapshot_ts, snapshot_cards
@@ -84,6 +85,9 @@ class ArenaLogParser:
                         ended_at=ended_at,
                     )
                 )
+                # The next deck snapshot belongs to the resulting deck. Any
+                # later snapshots may reflect ordinary gameplay mutations.
+                redraft_after_snapshot_starts.append(len(run.deck_snapshots))
             redraft_started = None
             redraft_selected = []
 
@@ -162,16 +166,18 @@ class ArenaLogParser:
                 else None
             )
 
-            next_before_index = (
-                redraft_before_snapshot_indices[index + 1]
-                if index + 1 < len(redraft_before_snapshot_indices)
+            after_start = (
+                redraft_after_snapshot_starts[index]
+                if index < len(redraft_after_snapshot_starts)
                 else len(snapshots)
             )
-            # The snapshot immediately before the next redraft is also the
-            # settled result of this redraft, so include that endpoint.
-            end = min(next_before_index + 1, len(snapshots))
-            after_candidates = snapshots[before_index + 1 : end]
-            after = after_candidates[-1] if after_candidates else None
+            # Use the first snapshot after ACTIVE_DRAFT_DECK. Later snapshots
+            # may include ordinary gameplay mutations such as shuffled cards.
+            after = (
+                snapshots[after_start]
+                if after_start < len(snapshots)
+                else None
+            )
 
             if before is None or after is None:
                 inferred.append(redraft)
