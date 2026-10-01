@@ -4,13 +4,13 @@ import re
 from pathlib import Path
 
 
-_UNDERGROUND = re.compile(r"GameType=GT_UNDERGROUND_ARENA\\b")
+_UNDERGROUND = re.compile(r"GameType=GT_UNDERGROUND_ARENA\b")
 _LOCAL_PLAYER = re.compile(
-    r"GameState\\.DebugPrintEntityChoices\\(\\) - .*Player=(?P<player>.+?) TaskList="
+    r"GameState\.DebugPrintEntityChoices\(\) - .*Player=(?P<player>.+?) TaskList="
 )
 _LOSS = re.compile(
-    r"PowerTaskList\\.DebugPrintPower\\(\\) - .*"
-    r"Entity=(?P<player>.+?) tag=PLAYSTATE value=LOST\\b"
+    r"PowerTaskList\.DebugPrintPower\(\) - .*"
+    r"Entity=(?P<player>.+?) tag=PLAYSTATE value=LOST\b"
 )
 
 
