@@ -38,6 +38,11 @@ def main() -> None:
                     {"id": card.card_id, "name": card.name}
                     for card in redraft.selected
                 ],
+                "discarded": [
+                    {"id": card.card_id, "name": card.name}
+                    for card in redraft.discarded
+                ],
+                "discarded_complete": redraft.discarded_complete,
             }
             for redraft in run.redrafts
         ],
