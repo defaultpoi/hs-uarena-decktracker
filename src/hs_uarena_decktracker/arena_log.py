@@ -132,13 +132,18 @@ class ArenaLogParser:
         if redraft_started is not None:
             finish_redraft(None)
 
-        self._infer_discards(run, redraft_before_snapshot_indices)
+        self._infer_discards(
+            run,
+            redraft_before_snapshot_indices,
+            redraft_after_snapshot_starts,
+        )
         return run
 
     @staticmethod
     def _infer_discards(
         run: ArenaRun,
         redraft_before_snapshot_indices: list[int],
+        redraft_after_snapshot_starts: list[int],
     ) -> None:
         """Infer removed cards using log order rather than wall-clock time.
 
