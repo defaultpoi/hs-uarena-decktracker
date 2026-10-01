@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.app import format_redraft
+from hs_uarena_decktracker.app import format_redraft, log_fingerprint
 from hs_uarena_decktracker.models import Card, Redraft
 
 
@@ -43,3 +43,37 @@ def test_marks_partial_discard_information():
     assert format_redraft(redraft) == (
         "#3  selected: New X  •  discarded: Old A  •  partial"
     )
+
+
+def test_log_fingerprint_changes_when_log_is_updated(tmp_path):
+    session = tmp_path / "Hearthstone_2026_10_01_12_00_00"
+    session.mkdir()
+    arena_log = session / "Arena.log"
+    power_log = session / "Power.log"
+    arena_log.write_text("first")
+    power_log.write_text("power")
+
+    first = log_fingerprint([session])
+    arena_log.write_text("second update")
+    second = log_fingerprint([session])
+
+    assert first != second
+
+
+def test_log_fingerprint_includes_multiple_sessions(tmp_path):
+    first = tmp_path / "Hearthstone_2026_10_01_12_00_00"
+    second = tmp_path / "Hearthstone_2026_10_01_13_00_00"
+    first.mkdir()
+    second.mkdir()
+    (first / "Arena.log").write_text("first")
+    (second / "Arena.log").write_text("second")
+
+    fingerprint = log_fingerprint([first, second])
+
+    assert len(fingerprint) == 4
+    assert {entry[0] for entry in fingerprint} == {
+        str(first / "Arena.log"),
+        str(first / "Power.log"),
+        str(second / "Arena.log"),
+        str(second / "Power.log"),
+    }
