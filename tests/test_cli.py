@@ -60,14 +60,14 @@ def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(
         cli,
         "parse_sessions",
-        lambda paths: ArenaRun(underground=True, losses=1, last_result="WON"),
-    )
+        lambda paths: ArenaRun(\n            underground=True,\n            losses=1,\n            last_result="WON",\n            game_results=["LOST", "WON"],\n        ),\n    )
     monkeypatch.setattr(sys, "argv", ["hs-uarena", str(session)])
 
     cli.main()
 
     result = json.loads(capsys.readouterr().out)
     assert result["last_result"] == "WON"
+    assert result["game_results"] == ["LOST", "WON"]
 
 
 

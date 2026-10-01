@@ -29,6 +29,7 @@ def main() -> None:
         "losses": run.losses,
         "run_ended": run.run_ended,
         "last_result": run.last_result,
+        "game_results": run.game_results,
         "deck_snapshots": [
             {
                 "timestamp": snapshot.timestamp,
