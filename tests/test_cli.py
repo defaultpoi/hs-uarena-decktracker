@@ -4,6 +4,7 @@ import sys
 from hs_uarena_decktracker import cli
 
 
+
 def test_cli_includes_redraft_discard_information(tmp_path, monkeypatch, capsys):
     session = tmp_path / "Hearthstone_2026_10_01_12_00_00"
     session.mkdir()
@@ -58,8 +59,8 @@ def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(
         cli,
-        "parse_session",
-        lambda path: ArenaRun(underground=True, losses=1, last_result="WON"),
+        "parse_sessions",
+        lambda paths: ArenaRun(underground=True, losses=1, last_result="WON"),
     )
     monkeypatch.setattr(sys, "argv", ["hs-uarena", str(session)])
 
