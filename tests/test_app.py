@@ -103,7 +103,7 @@ def test_formats_active_redraft_state():
 
     assert redraft_state(redraft) == (
         "REDRAFT #2 — IN PROGRESS\n"
-        "Selected: New X, New Y"
+        "Selected (2/5): New X, New Y"
     )
 
 
@@ -119,6 +119,6 @@ def test_formats_completed_redraft_state():
 
     assert redraft_state(redraft) == (
         "REDRAFT #1\n"
-        "Selected: New X\n"
-        "Discarded (complete): Old A"
+        "Selected (1/5): New X\n"
+        "Discarded (1/5, complete): Old A"
     )
