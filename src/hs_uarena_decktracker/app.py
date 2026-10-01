@@ -60,6 +60,24 @@ def format_run_status(run: ArenaRun, deck_count: int) -> str:
     return f"UNDERGROUND ARENA  •  {progress}\n{deck_count} cards  •  Last: {result}  •  Hero: {hero}"
 
 
+def format_run_progress(run: ArenaRun) -> str:
+    """Format the ordered game/redraft progression without inventing timestamps."""
+    lines: list[str] = []
+
+    for index, result in enumerate(run.game_results, start=1):
+        lines.append(f"GAME #{index}: {result}")
+        if result == "LOST" and index <= len(run.redrafts):
+            lines.append(f"  ↳ REDRAFT #{index}")
+
+    if not lines:
+        return "No games recorded"
+
+    if run.run_ended:
+        lines.append("RUN COMPLETE")
+
+    return "\n".join(lines)
+
+
 def format_deck(cards: tuple[Card, ...]) -> str:
     """Format a deck compactly, grouping duplicate cards."""
     names: dict[str, str] = {}
@@ -142,6 +160,14 @@ def main() -> None:
             self.redrafts = QListWidget()
             self.redrafts.setMaximumHeight(130)
 
+            self.progress_label = QLabel("RUN PROGRESS")
+            self.progress_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.progress = QLabel("No games recorded")
+            self.progress.setWordWrap(True)
+            self.progress.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
+            )
+
             layout = QVBoxLayout()
             layout.setContentsMargins(8, 8, 8, 8)
             layout.setSpacing(4)
@@ -151,6 +177,8 @@ def main() -> None:
             layout.addWidget(self.redraft_label)
             layout.addWidget(self.redraft_current)
             layout.addWidget(self.redrafts)
+            layout.addWidget(self.progress_label)
+            layout.addWidget(self.progress)
 
             root = QWidget()
             root.setLayout(layout)
@@ -170,6 +198,7 @@ def main() -> None:
                 self.deck.clear()
                 self.redrafts.clear()
                 self.redraft_current.setText("No redrafts yet")
+                self.progress.setText("No games recorded")
                 return
 
             session_dirs = sessions(log_root)
@@ -180,6 +209,7 @@ def main() -> None:
                 self.deck.clear()
                 self.redrafts.clear()
                 self.redraft_current.setText("No redrafts yet")
+                self.progress.setText("No games recorded")
                 return
 
             fingerprint = log_fingerprint(session_dirs)
@@ -195,6 +225,7 @@ def main() -> None:
                 self.deck.clear()
                 self.redrafts.clear()
                 self.redraft_current.setText("No redrafts yet")
+                self.progress.setText("No games recorded")
                 return
 
             deck = run.current_deck
@@ -213,6 +244,8 @@ def main() -> None:
                         self.redrafts.addItem(format_redraft(redraft))
             else:
                 self.redraft_current.setText("No redrafts yet")
+
+            self.progress.setText(format_run_progress(run))
 
 
     app = QApplication(sys.argv)

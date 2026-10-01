@@ -24,13 +24,14 @@ def is_underground_arena(path: str | Path) -> bool:
         return any(_UNDERGROUND.search(line) for line in handle)
 
 
-def latest_result(path: str | Path) -> str | None:
-    """Return the latest terminal result for the local player, if known."""
+def game_results(path: str | Path) -> list[str]:
+    """Return terminal results for the local player in log order."""
     path = Path(path)
     if not path.is_file():
-        return None
+        return []
+
     local_player: str | None = None
-    result: str | None = None
+    results: list[str] = []
     with path.open("r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
             if local_player is None:
@@ -40,8 +41,14 @@ def latest_result(path: str | Path) -> str | None:
             if local_player is not None:
                 match = _RESULT.search(line)
                 if match and match.group("player") == local_player:
-                    result = match.group("result")
-    return result
+                    results.append(match.group("result"))
+    return results
+
+
+def latest_result(path: str | Path) -> str | None:
+    """Return the latest terminal result for the local player, if known."""
+    results = game_results(path)
+    return results[-1] if results else None
 
 
 def count_losses(path: str | Path) -> int:
@@ -52,23 +59,4 @@ def count_losses(path: str | Path) -> int:
     PowerTaskList output to avoid double-counting the corresponding
     GameState/PowerTaskList debug representations.
     """
-    path = Path(path)
-    if not path.is_file():
-        return 0
-
-    local_player: str | None = None
-    losses = 0
-
-    with path.open("r", encoding="utf-8", errors="replace") as handle:
-        for line in handle:
-            if local_player is None:
-                choice = _LOCAL_PLAYER.search(line)
-                if choice:
-                    local_player = choice.group("player")
-
-            if local_player is not None:
-                result = _RESULT.search(line)
-                if result and result.group("player") == local_player and result.group("result") == "LOST":
-                    losses += 1
-
-    return losses
+    return game_results(path).count("LOST")

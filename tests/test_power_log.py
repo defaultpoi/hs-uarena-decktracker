@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.power_log import count_losses
+from hs_uarena_decktracker.power_log import count_losses, game_results
 
 
 def test_counts_only_local_player_losses(tmp_path):
@@ -25,6 +25,18 @@ def test_count_losses_requires_local_player_identity(tmp_path):
 
     assert count_losses(power) == 0
 
+
+def test_game_results_preserves_terminal_results_in_order(tmp_path):
+    power = tmp_path / "Power.log"
+    power.write_text(
+        "D 12:00:00.0000000 GameState.DebugPrintEntityChoices() - id=1 Player=Local#1234 TaskList=1 ChoiceType=MULLIGAN CountMin=0 CountMax=5\n"
+        "D 12:10:00.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=Local#1234 tag=PLAYSTATE value=LOST\n"
+        "D 12:20:00.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=Local#1234 tag=PLAYSTATE value=WON\n"
+        "D 12:30:00.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=Local#1234 tag=PLAYSTATE value=LOSING\n",
+        encoding="utf-8",
+    )
+
+    assert game_results(power) == ["LOST", "WON"]
 
 
 def test_latest_result_ignores_losing_and_returns_terminal_state(tmp_path):

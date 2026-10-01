@@ -1,5 +1,12 @@
-from hs_uarena_decktracker.app import format_deck, format_redraft, format_run_status, log_fingerprint, redraft_state
-from hs_uarena_decktracker.models import Card, Redraft
+from hs_uarena_decktracker.app import (
+    format_deck,
+    format_redraft,
+    format_run_progress,
+    format_run_status,
+    log_fingerprint,
+    redraft_state,
+)
+from hs_uarena_decktracker.models import ArenaRun, Card, Redraft
 
 
 def test_formats_complete_redraft_with_discarded_cards():
@@ -7,10 +14,7 @@ def test_formats_complete_redraft_with_discarded_cards():
         number=1,
         started_at="12:00:00",
         ended_at="12:01:00",
-        selected=(
-            Card("X", "New X"),
-            Card("Y", "New Y"),
-        ),
+        selected=(Card("X", "New X"), Card("Y", "New Y")),
         discarded=(Card("A", "Old A"), Card("B", "Old B")),
         discarded_complete=True,
     )
@@ -139,8 +143,6 @@ def test_formats_completed_redraft_state():
 
 
 def test_formats_compact_run_status():
-    from hs_uarena_decktracker.models import ArenaRun
-
     run = ArenaRun(underground=True, losses=1, last_result="WON", hero_card_id="HERO_11")
 
     assert format_run_status(run, 30) == (
@@ -150,11 +152,29 @@ def test_formats_compact_run_status():
 
 
 def test_formats_completed_run_status():
-    from hs_uarena_decktracker.models import ArenaRun
-
     run = ArenaRun(underground=True, losses=3, last_result="LOST", hero_card_id="HERO_11")
 
     assert format_run_status(run, 28) == (
         "UNDERGROUND ARENA  •  RUN COMPLETE\n"
         "28 cards  •  Last: LOST  •  Hero: HERO_11"
+    )
+
+
+def test_formats_run_progress_without_inventing_timestamps():
+    run = ArenaRun(
+        game_results=["LOST", "WON", "LOST", "LOST"],
+        redrafts=[
+            Redraft(number=1, started_at="12:00:00", selected=()),
+            Redraft(number=2, started_at="13:00:00", selected=()),
+        ],
+    )
+
+    assert format_run_progress(run) == (
+        "GAME #1: LOST\n"
+        "  ↳ REDRAFT #1\n"
+        "GAME #2: WON\n"
+        "GAME #3: LOST\n"
+        "  ↳ REDRAFT #2\n"
+        "GAME #4: LOST\n"
+        "RUN COMPLETE"
     )
