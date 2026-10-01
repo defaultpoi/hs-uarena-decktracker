@@ -58,6 +58,7 @@ class ArenaLogParser:
         redraft_number = 0
         redraft_started: str | None = None
         redraft_selected: list[Card] = []
+        redraft_before_snapshot_indices: list[int] = []
 
         def finish_snapshot() -> None:
             nonlocal snapshot_ts, snapshot_cards
@@ -109,6 +110,7 @@ class ArenaLogParser:
                 mode_name = mode.group("mode")
                 if mode_name == "REDRAFTING":
                     finish_snapshot()
+                    redraft_before_snapshot_indices.append(len(run.deck_snapshots) - 1)
                     redraft_number += 1
                     redraft_started = mode.group("ts")
                     redraft_selected = []
@@ -126,14 +128,22 @@ class ArenaLogParser:
         if redraft_started is not None:
             finish_redraft(None)
 
-        self._infer_discards(run)
+        self._infer_discards(run, redraft_before_snapshot_indices)
         return run
 
     @staticmethod
-    def _infer_discards(run: ArenaRun) -> None:
-        """Infer removed cards from the deck state surrounding each redraft."""
-        snapshots = run.deck_snapshots
+    def _infer_discards(
+        run: ArenaRun,
+        redraft_before_snapshot_indices: list[int],
+    ) -> None:
+        """Infer removed cards using log order rather than wall-clock time.
 
+        Session logs reset their time-of-day clock, so comparing timestamp
+        strings can associate a redraft with the wrong snapshot when a run
+        spans sessions or midnight. Snapshot order is stable across the
+        combined Arena.log files.
+        """
+        snapshots = run.deck_snapshots
         inferred: list[Redraft] = []
 
         for index, redraft in enumerate(run.redrafts):
@@ -141,32 +151,23 @@ class ArenaLogParser:
                 inferred.append(redraft)
                 continue
 
-            before = next(
-                (
-                    snapshot
-                    for snapshot in reversed(snapshots)
-                    if snapshot.timestamp < redraft.started_at
-                ),
-                None,
+            before_index = (
+                redraft_before_snapshot_indices[index]
+                if index < len(redraft_before_snapshot_indices)
+                else -1
             )
-
-            # Use the last snapshot before the next redraft. Hearthstone can
-            # emit several post-redraft deck snapshots, and the first one is
-            # not necessarily the settled resulting deck.
-            next_redraft_start = (
-                run.redrafts[index + 1].started_at
-                if index + 1 < len(run.redrafts)
+            before = (
+                snapshots[before_index]
+                if 0 <= before_index < len(snapshots)
                 else None
             )
-            after_candidates = [
-                snapshot
-                for snapshot in snapshots
-                if snapshot.timestamp > redraft.ended_at
-                and (
-                    next_redraft_start is None
-                    or snapshot.timestamp < next_redraft_start
-                )
-            ]
+
+            next_before_index = (
+                redraft_before_snapshot_indices[index + 1]
+                if index + 1 < len(redraft_before_snapshot_indices)
+                else len(snapshots)
+            )
+            after_candidates = snapshots[before_index + 1 : next_before_index]
             after = after_candidates[-1] if after_candidates else None
 
             if before is None or after is None:
