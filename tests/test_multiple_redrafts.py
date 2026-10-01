@@ -23,6 +23,15 @@ def test_tracks_discards_per_redraft(tmp_path):
         f"D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
         for card in "CFGHIXYZQW"
     ]
+    # A later snapshot can reflect ordinary gameplay mutations. It must
+    # not become the endpoint used to infer the earlier redraft.
+    lines += [
+        f"D 12:02:30.0000000 DraftManager.OnChoicesAndContents - Draft Deck ID: 1, Hero Card = HERO_11",
+    ]
+    lines += [
+        f"D 12:02:30.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
+        for card in "CFGHIXYZQ"
+    ]
     lines += [
         "D 12:03:00.0000000 SetDraftMode - REDRAFTING",
         "D 12:03:01.0000000 Client chooses: B (B)",
