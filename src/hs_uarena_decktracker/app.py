@@ -26,19 +26,29 @@ def format_redraft(redraft: Redraft) -> str:
 def redraft_state(redraft: Redraft) -> str:
     """Format the latest redraft as a compact two-line status block."""
     selected = ", ".join(card.display_name() for card in redraft.selected) or "none"
+    selected_count = len(redraft.selected)
+
     if redraft.ended_at is None:
-        return f"REDRAFT #{redraft.number} — IN PROGRESS\nSelected: {selected}"
+        return (
+            f"REDRAFT #{redraft.number} — IN PROGRESS\n"
+            f"Selected ({selected_count}/5): {selected}"
+        )
 
     if redraft.discarded:
         discarded = ", ".join(card.display_name() for card in redraft.discarded)
+        discarded_count = len(redraft.discarded)
         status = "complete" if redraft.discarded_complete else "partial"
         return (
             f"REDRAFT #{redraft.number}\n"
-            f"Selected: {selected}\n"
-            f"Discarded ({status}): {discarded}"
+            f"Selected ({selected_count}/5): {selected}\n"
+            f"Discarded ({discarded_count}/5, {status}): {discarded}"
         )
 
-    return f"REDRAFT #{redraft.number}\nSelected: {selected}\nDiscarded: not determined"
+    return (
+        f"REDRAFT #{redraft.number}\n"
+        f"Selected ({selected_count}/5): {selected}\n"
+        "Discarded (0/5): not determined"
+    )
 
 
 def format_deck(cards: tuple[Card, ...]) -> str:
