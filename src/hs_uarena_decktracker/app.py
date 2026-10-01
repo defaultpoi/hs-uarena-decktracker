@@ -23,6 +23,24 @@ def format_redraft(redraft: Redraft) -> str:
     return f"#{redraft.number}  selected: {selected}  •  discarded: not determined"
 
 
+def redraft_state(redraft: Redraft) -> str:
+    """Format the latest redraft as a compact two-line status block."""
+    selected = ", ".join(card.display_name() for card in redraft.selected) or "none"
+    if redraft.ended_at is None:
+        return f"REDRAFT #{redraft.number} — IN PROGRESS\nSelected: {selected}"
+
+    if redraft.discarded:
+        discarded = ", ".join(card.display_name() for card in redraft.discarded)
+        status = "complete" if redraft.discarded_complete else "partial"
+        return (
+            f"REDRAFT #{redraft.number}\n"
+            f"Selected: {selected}\n"
+            f"Discarded ({status}): {discarded}"
+        )
+
+    return f"REDRAFT #{redraft.number}\nSelected: {selected}\nDiscarded: not determined"
+
+
 def format_deck(cards: tuple[Card, ...]) -> str:
     """Format a deck compactly, grouping duplicate cards."""
     counts = Counter(card.display_name() for card in cards)
@@ -88,7 +106,7 @@ def main() -> None:
             self.deck.setMaximumHeight(300)
             self.deck.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
 
-            self.redraft_label = QLabel("REDRAFT HISTORY")
+            self.redraft_label = QLabel("REDRAFT STATUS")
             self.redraft_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.redrafts = QListWidget()
             self.redrafts.setMaximumHeight(170)
@@ -156,7 +174,10 @@ def main() -> None:
 
             self.redrafts.clear()
             if run.redrafts:
-                for redraft in run.redrafts:
+                self.redrafts.addItem(redraft_state(run.redrafts[-1]))
+                self.redrafts.addItem("")
+                self.redrafts.addItem("HISTORY")
+                for redraft in run.redrafts[:-1]:
                     self.redrafts.addItem(format_redraft(redraft))
             else:
                 self.redrafts.addItem("No redrafts yet")
