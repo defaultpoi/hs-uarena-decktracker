@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.app import format_deck, format_redraft, log_fingerprint
+from hs_uarena_decktracker.app import format_deck, format_redraft, log_fingerprint, redraft_state
 from hs_uarena_decktracker.models import Card, Redraft
 
 
@@ -91,4 +91,34 @@ def test_formats_deck_compactly_with_counts():
         "Arcane Bolt ×2\n"
         "Fireball\n"
         "Unknown Card"
+    )
+
+
+def test_formats_active_redraft_state():
+    redraft = Redraft(
+        number=2,
+        started_at="13:00:00",
+        selected=(Card("X", "New X"), Card("Y", "New Y")),
+    )
+
+    assert redraft_state(redraft) == (
+        "REDRAFT #2 — IN PROGRESS\n"
+        "Selected: New X, New Y"
+    )
+
+
+def test_formats_completed_redraft_state():
+    redraft = Redraft(
+        number=1,
+        started_at="12:00:00",
+        ended_at="12:01:00",
+        selected=(Card("X", "New X"),),
+        discarded=(Card("A", "Old A"),),
+        discarded_complete=True,
+    )
+
+    assert redraft_state(redraft) == (
+        "REDRAFT #1\n"
+        "Selected: New X\n"
+        "Discarded (complete): Old A"
     )
