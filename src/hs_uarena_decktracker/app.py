@@ -172,6 +172,7 @@ def main() -> None:
                 self.status.setText("No Hearthstone session found")
                 self.deck.clear()
                 self.redrafts.clear()
+                self.redraft_current.setText("No redrafts yet")
                 return
 
             fingerprint = log_fingerprint(session_dirs)
@@ -186,6 +187,7 @@ def main() -> None:
                 self.status.setText("Latest run is not Underground Arena")
                 self.deck.clear()
                 self.redrafts.clear()
+                self.redraft_current.setText("No redrafts yet")
                 return
 
             deck = run.current_deck
