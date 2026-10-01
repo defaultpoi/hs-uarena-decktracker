@@ -28,6 +28,7 @@ class Redraft:
     number: int
     started_at: str
     selected: tuple[Card, ...]
+    redraft_deck_id: str | None = None
     ended_at: str | None = None
     discarded: tuple[Card, ...] = ()
     discarded_complete: bool = False

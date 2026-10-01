@@ -11,6 +11,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     ]
     lines += [
         "D 12:01:00.0000000 SetDraftMode - REDRAFTING",
+        "D 12:01:00.5000000 DraftManager.OnRedraftBegin - Got new redraft deck with ID: 100",
         "D 12:01:01.0000000 Client chooses: X (X)",
         "D 12:01:02.0000000 Client chooses: Y (Y)",
         "D 12:01:03.0000000 Client chooses: Z (Z)",
@@ -55,6 +56,8 @@ def test_tracks_discards_per_redraft(tmp_path):
     run = ArenaLogParser().parse(tmp_path / "Arena.log")
 
     assert len(run.redrafts) == 2
+    assert run.redrafts[0].redraft_deck_id == "100"
+    assert run.redrafts[1].redraft_deck_id is None
     assert [card.card_id for card in run.redrafts[0].discarded] == ["A", "B", "D", "E", "J"]
     assert run.redrafts[0].discarded_complete is True
     assert [card.card_id for card in run.redrafts[1].discarded] == ["C"]

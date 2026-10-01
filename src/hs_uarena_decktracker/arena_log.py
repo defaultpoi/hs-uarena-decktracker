@@ -23,6 +23,10 @@ _MODE = re.compile(
     r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) SetDraftMode - (?P<mode>\S+)"
 )
 
+_REDRAFT_BEGIN = re.compile(
+    r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) DraftManager\.OnRedraftBegin - Got new redraft deck with ID: (?P<deck>\d+)"
+)
+
 _CHOICE = re.compile(
     r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) Client chooses: "
     r"(?P<name>.*?) \((?P<card>[^)]+)\)"
@@ -57,6 +61,7 @@ class ArenaLogParser:
         snapshot_cards: list[Card] = []
         redraft_number = 0
         redraft_started: str | None = None
+        redraft_deck_id: str | None = None
         redraft_selected: list[Card] = []
         redraft_before_snapshot_indices: list[int] = []
         redraft_after_snapshot_starts: list[int] = []
@@ -75,12 +80,13 @@ class ArenaLogParser:
             snapshot_cards = []
 
         def finish_redraft(ended_at: str | None) -> None:
-            nonlocal redraft_started, redraft_selected
+            nonlocal redraft_started, redraft_deck_id, redraft_selected
             if redraft_started is not None:
                 run.redrafts.append(
                     Redraft(
                         number=redraft_number,
                         started_at=redraft_started,
+                        redraft_deck_id=redraft_deck_id,
                         selected=tuple(redraft_selected),
                         ended_at=ended_at,
                     )
@@ -89,6 +95,7 @@ class ArenaLogParser:
                 # later snapshots may reflect ordinary gameplay mutations.
                 redraft_after_snapshot_starts.append(len(run.deck_snapshots))
             redraft_started = None
+            redraft_deck_id = None
             redraft_selected = []
 
         for raw_line in lines:
@@ -107,6 +114,11 @@ class ArenaLogParser:
                 if snapshot_ts is None:
                     snapshot_ts = card_match.group("ts")
                 snapshot_cards.append(Card(card_match.group("card")))
+                continue
+
+            redraft_begin = _REDRAFT_BEGIN.search(line)
+            if redraft_begin and redraft_started is not None:
+                redraft_deck_id = redraft_begin.group("deck")
                 continue
 
             mode = _MODE.search(line)
