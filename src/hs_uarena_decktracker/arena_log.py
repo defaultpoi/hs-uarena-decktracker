@@ -23,6 +23,10 @@ _MODE = re.compile(
     r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) SetDraftMode - (?P<mode>\S+)"
 )
 
+_REDRAFT_BEGIN = re.compile(
+    r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) DraftManager\.OnRedraftBegin - Got new redraft deck with ID: (?P<deck>\d+)"
+)
+
 _CHOICE = re.compile(
     r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) Client chooses: "
     r"(?P<name>.*?) \((?P<card>[^)]+)\)"
