@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 from .discovery import find_log_root, sessions
-from .models import Redraft
+from .models import ArenaRun, Redraft
 from .session import parse_sessions
 
 
@@ -19,6 +20,24 @@ def format_redraft(redraft: Redraft) -> str:
         return f"#{redraft.number}  selected: {selected}  •  discarded: {discarded}{suffix}"
 
     return f"#{redraft.number}  selected: {selected}  •  discarded: not determined"
+
+
+def log_fingerprint(session_dirs: list[str | Path]) -> tuple[tuple[str, int, int], ...]:
+    """Return a cheap fingerprint for the log files used by the live GUI."""
+    fingerprint: list[tuple[str, int, int]] = []
+
+    for session_dir in session_dirs:
+        session = Path(session_dir)
+        for filename in ("Arena.log", "Power.log"):
+            path = session / filename
+            try:
+                stat = path.stat()
+            except FileNotFoundError:
+                fingerprint.append((str(path), 0, 0))
+            else:
+                fingerprint.append((str(path), stat.st_mtime_ns, stat.st_size))
+
+    return tuple(fingerprint)
 
 
 def main() -> None:
@@ -44,6 +63,8 @@ def main() -> None:
             self.setWindowTitle("HS Underground Arena")
             self.setFixedWidth(420)
             self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+            self._log_fingerprint: tuple[tuple[str, int, int], ...] | None = None
+            self._cached_run: ArenaRun | None = None
 
             self.status = QLabel("Looking for Hearthstone logs…")
             self.status.setWordWrap(True)
@@ -75,6 +96,8 @@ def main() -> None:
         def refresh(self) -> None:
             log_root = find_log_root()
             if log_root is None:
+                self._log_fingerprint = None
+                self._cached_run = None
                 self.status.setText("Hearthstone Logs directory not found")
                 self.deck.clear()
                 self.redrafts.clear()
@@ -82,12 +105,21 @@ def main() -> None:
 
             session_dirs = sessions(log_root)
             if not session_dirs:
+                self._log_fingerprint = None
+                self._cached_run = None
                 self.status.setText("No Hearthstone session found")
                 self.deck.clear()
                 self.redrafts.clear()
                 return
 
-            run = parse_sessions(session_dirs)
+            fingerprint = log_fingerprint(session_dirs)
+            if fingerprint != self._log_fingerprint:
+                self._cached_run = parse_sessions(session_dirs)
+                self._log_fingerprint = fingerprint
+
+            run = self._cached_run
+            if run is None:
+                return
             if not run.underground:
                 self.status.setText("Latest run is not Underground Arena")
                 self.deck.clear()
