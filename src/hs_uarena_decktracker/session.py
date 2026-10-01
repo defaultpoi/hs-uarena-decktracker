@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .arena_log import ArenaLogParser
 from .models import ArenaRun
-from .power_log import count_losses, is_underground_arena, latest_result
+from .power_log import game_results, is_underground_arena, latest_result
 
 
 def parse_session(session_dir: str | Path) -> ArenaRun:
@@ -37,7 +37,12 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         is_underground_arena(session / "Power.log")
         for session in matching
     )
-    run.losses = sum(count_losses(session / "Power.log") for session in matching)
+    run.game_results = [
+        result
+        for session in matching
+        for result in game_results(session / "Power.log")
+    ]
+    run.losses = run.game_results.count("LOST")
     for session in reversed(matching):
         result = latest_result(session / "Power.log")
         if result is not None:
