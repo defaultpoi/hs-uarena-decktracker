@@ -16,13 +16,14 @@ def deck_lines(timestamp: str, cards: list[str]) -> list[str]:
 
 def test_realistic_two_redraft_flow_across_sessions(tmp_path):
     # Thirty-card starting deck with a duplicate A. Redraft #1 replaces
-    # four old cards while one newly selected card (W) is itself discarded.
+    # four old cards while one selected card (W) already present in the deck is itself discarded.
     initial = list("AABCDEFGHIJKLMNOPQRSTUVWXY")  # 27 cards
     initial += ["Z", "AA", "AB", "AC"]
     assert len(initial) == 30
     assert Counter(initial)["A"] == 2
 
     first_result = [card for card in initial if card not in {"B", "D", "E", "J"}]
+    first_result = [card for card in initial if card not in {"B", "D", "E", "J", "W"}]
     first_result += ["R1", "R2", "R3", "R4"]
     assert len(first_result) == 30
 
@@ -37,7 +38,7 @@ def test_realistic_two_redraft_flow_across_sessions(tmp_path):
         "D 12:01:02.0000000 Client chooses: R2 (R2)",
         "D 12:01:03.0000000 Client chooses: R3 (R3)",
         "D 12:01:04.0000000 Client chooses: R4 (R4)",
-        "D 12:01:05.0000000 Client chooses: R5 (R5)",
+        "D 12:01:05.0000000 Client chooses: W (W)",
         "D 12:01:06.0000000 SetDraftMode - ACTIVE_DRAFT_DECK",
     ]
     first_lines += deck_lines("12:02:00.0000000", first_result)
@@ -74,9 +75,9 @@ def test_realistic_two_redraft_flow_across_sessions(tmp_path):
     assert [r.redraft_deck_id for r in run.redrafts] == ["100", "200"]
 
     first_discarded = [card.card_id for card in run.redrafts[0].discarded]
-    assert first_discarded == ["B", "D", "E", "J", "R5"]
+    assert first_discarded == ["B", "D", "E", "J", "W"]
     assert run.redrafts[0].discarded_complete is True
-    assert any(card.card_id == "R5" and card.name == "R5" for card in run.redrafts[0].discarded)
+    assert any(card.card_id == "W" and card.name == "W" for card in run.redrafts[0].discarded)
 
     second_discarded = Counter(card.card_id for card in run.redrafts[1].discarded)
     assert sum(second_discarded.values()) == 5
