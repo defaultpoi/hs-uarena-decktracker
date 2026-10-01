@@ -103,7 +103,8 @@ def test_formats_active_redraft_state():
 
     assert redraft_state(redraft) == (
         "REDRAFT #2 — IN PROGRESS\n"
-        "Selected (2/5): New X, New Y"
+        "Selected (2/5): New X, New Y\n"
+        "Discarded: waiting for resulting deck"
     )
 
 
