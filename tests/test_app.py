@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.app import format_redraft, log_fingerprint
+from hs_uarena_decktracker.app import format_deck, format_redraft, log_fingerprint
 from hs_uarena_decktracker.models import Card, Redraft
 
 
@@ -77,3 +77,18 @@ def test_log_fingerprint_includes_multiple_sessions(tmp_path):
         str(second / "Arena.log"),
         str(second / "Power.log"),
     }
+
+
+def test_formats_deck_compactly_with_counts():
+    cards = (
+        Card("A", "Arcane Bolt"),
+        Card("B", "Fireball"),
+        Card("A", "Arcane Bolt"),
+        Card("C", "Unknown Card"),
+    )
+
+    assert format_deck(cards) == (
+        "Arcane Bolt ×2\n"
+        "Fireball\n"
+        "Unknown Card"
+    )
