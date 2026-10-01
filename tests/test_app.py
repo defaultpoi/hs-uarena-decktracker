@@ -160,6 +160,26 @@ def test_formats_completed_run_status():
     )
 
 
+def test_formats_run_progress_after_intervening_win():
+    from hs_uarena_decktracker.models import ArenaRun
+
+    run = ArenaRun(
+        game_results=["LOST", "WON", "LOST"],
+        redrafts=[
+            Redraft(number=1, started_at="12:00:00", selected=()),
+            Redraft(number=2, started_at="13:00:00", selected=()),
+        ],
+    )
+
+    assert format_run_progress(run) == (
+        "GAME #1: LOST\n"
+        "  ↳ REDRAFT #1\n"
+        "GAME #2: WON\n"
+        "GAME #3: LOST\n"
+        "  ↳ REDRAFT #2"
+    )
+
+
 def test_formats_run_progress_without_inventing_timestamps():
     run = ArenaRun(
         game_results=["LOST", "WON", "LOST", "LOST"],
