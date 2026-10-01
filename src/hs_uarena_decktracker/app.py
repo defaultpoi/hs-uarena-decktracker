@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import sys
+from collections import Counter
 from pathlib import Path
 
 from .discovery import find_log_root, sessions
-from .models import ArenaRun, Redraft
+from .models import ArenaRun, Card, Redraft
 from .session import parse_sessions
 
 
@@ -20,6 +21,15 @@ def format_redraft(redraft: Redraft) -> str:
         return f"#{redraft.number}  selected: {selected}  •  discarded: {discarded}{suffix}"
 
     return f"#{redraft.number}  selected: {selected}  •  discarded: not determined"
+
+
+def format_deck(cards: tuple[Card, ...]) -> str:
+    """Format a deck compactly, grouping duplicate cards."""
+    counts = Counter(card.display_name() for card in cards)
+    return "\n".join(
+        f"{name} ×{count}" if count > 1 else name
+        for name, count in counts.items()
+    ) or "No deck snapshot yet"
 
 
 def log_fingerprint(session_dirs: list[str | Path]) -> tuple[tuple[str, int, int], ...]:
@@ -48,6 +58,7 @@ def main() -> None:
             QLabel,
             QListWidget,
             QMainWindow,
+            QPlainTextEdit,
             QVBoxLayout,
             QWidget,
         )
@@ -61,23 +72,30 @@ def main() -> None:
         def __init__(self) -> None:
             super().__init__()
             self.setWindowTitle("HS Underground Arena")
-            self.setFixedWidth(420)
+            self.setFixedSize(380, 560)
             self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
             self._log_fingerprint: tuple[tuple[str, int, int], ...] | None = None
             self._cached_run: ArenaRun | None = None
 
             self.status = QLabel("Looking for Hearthstone logs…")
             self.status.setWordWrap(True)
+            self.status.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            self.deck_label = QLabel("Current deck")
-            self.deck = QListWidget()
+            self.deck_label = QLabel("CURRENT DECK")
+            self.deck_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.deck = QPlainTextEdit()
+            self.deck.setReadOnly(True)
+            self.deck.setMaximumHeight(300)
+            self.deck.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
 
-            self.redraft_label = QLabel("Redraft history")
+            self.redraft_label = QLabel("REDRAFT HISTORY")
+            self.redraft_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.redrafts = QListWidget()
+            self.redrafts.setMaximumHeight(170)
 
             layout = QVBoxLayout()
             layout.setContentsMargins(8, 8, 8, 8)
-            layout.setSpacing(6)
+            layout.setSpacing(4)
             layout.addWidget(self.status)
             layout.addWidget(self.deck_label)
             layout.addWidget(self.deck)
@@ -134,11 +152,7 @@ def main() -> None:
             )
 
             self.deck.clear()
-            if deck:
-                for card in deck.cards:
-                    self.deck.addItem(card.display_name())
-            else:
-                self.deck.addItem("No deck snapshot yet")
+            self.deck.setPlainText(format_deck(deck.cards) if deck else "No deck snapshot yet")
 
             self.redrafts.clear()
             if run.redrafts:
