@@ -47,3 +47,23 @@ D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card 
         {"id": "C", "name": None},
     ]
     assert redraft["discarded_complete"] is False
+
+
+
+def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
+    from hs_uarena_decktracker.models import ArenaRun
+
+    session = tmp_path / "Hearthstone_2026_10_01_12_00_00"
+    session.mkdir()
+
+    monkeypatch.setattr(
+        cli,
+        "parse_session",
+        lambda path: ArenaRun(underground=True, losses=1, last_result="WON"),
+    )
+    monkeypatch.setattr(sys, "argv", ["hs-uarena", str(session)])
+
+    cli.main()
+
+    result = json.loads(capsys.readouterr().out)
+    assert result["last_result"] == "WON"
