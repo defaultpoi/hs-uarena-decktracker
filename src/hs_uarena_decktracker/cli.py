@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
-from .session import parse_session
+from .discovery import sessions
+from .session import parse_sessions
 
 
 def main() -> None:
@@ -13,7 +15,12 @@ def main() -> None:
     parser.add_argument("session", help="Hearthstone_YYYY_MM_DD_HH_MM_SS directory")
     args = parser.parse_args()
 
-    run = parse_session(args.session)
+    session = Path(args.session).expanduser()
+    if not session.is_dir():
+        parser.error(f"session directory not found: {session}")
+
+    history = [path for path in sessions(session.parent) if path.name <= session.name]
+    run = parse_sessions(history)
 
     result = {
         "underground_arena": run.underground,

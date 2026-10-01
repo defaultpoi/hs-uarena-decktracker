@@ -4,6 +4,7 @@ import sys
 from hs_uarena_decktracker import cli
 
 
+
 def test_cli_includes_redraft_discard_information(tmp_path, monkeypatch, capsys):
     session = tmp_path / "Hearthstone_2026_10_01_12_00_00"
     session.mkdir()
@@ -58,8 +59,8 @@ def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(
         cli,
-        "parse_session",
-        lambda path: ArenaRun(underground=True, losses=1, last_result="WON"),
+        "parse_sessions",
+        lambda paths: ArenaRun(underground=True, losses=1, last_result="WON"),
     )
     monkeypatch.setattr(sys, "argv", ["hs-uarena", str(session)])
 
@@ -67,3 +68,28 @@ def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
 
     result = json.loads(capsys.readouterr().out)
     assert result["last_result"] == "WON"
+
+
+
+def test_cli_parses_sessions_up_to_requested_session(tmp_path, monkeypatch, capsys):
+    first = tmp_path / "Hearthstone_2026_10_01_11_00_00"
+    second = tmp_path / "Hearthstone_2026_10_01_12_00_00"
+    third = tmp_path / "Hearthstone_2026_10_01_13_00_00"
+    for session in (first, second, third):
+        session.mkdir()
+
+    captured = []
+    monkeypatch.setattr(cli, "sessions", lambda root: [first, second, third])
+
+    from hs_uarena_decktracker.models import ArenaRun
+    monkeypatch.setattr(
+        cli,
+        "parse_sessions",
+        lambda paths: captured.extend(paths) or ArenaRun(),
+    )
+    monkeypatch.setattr(sys, "argv", ["hs-uarena", str(second)])
+
+    cli.main()
+
+    assert captured == [first, second]
+    json.loads(capsys.readouterr().out)
