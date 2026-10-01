@@ -94,6 +94,19 @@ def test_formats_deck_compactly_with_counts():
     )
 
 
+def test_formats_deck_using_known_name_for_duplicate_card_ids():
+    cards = (
+        Card("A", None),
+        Card("A", "Arcane Bolt"),
+        Card("B", "Fireball"),
+    )
+
+    assert format_deck(cards) == (
+        "Arcane Bolt ×2\n"
+        "Fireball"
+    )
+
+
 def test_formats_active_redraft_state():
     redraft = Redraft(
         number=2,

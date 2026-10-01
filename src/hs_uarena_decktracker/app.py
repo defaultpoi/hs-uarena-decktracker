@@ -62,10 +62,17 @@ def format_run_status(run: ArenaRun, deck_count: int) -> str:
 
 def format_deck(cards: tuple[Card, ...]) -> str:
     """Format a deck compactly, grouping duplicate cards."""
-    counts = Counter(card.display_name() for card in cards)
+    names: dict[str, str] = {}
+    counts: Counter[str] = Counter()
+
+    for card in cards:
+        if card.card_id not in names or card.name is not None:
+            names[card.card_id] = card.display_name()
+        counts[card.card_id] += 1
+
     return "\n".join(
-        f"{name} ×{count}" if count > 1 else name
-        for name, count in counts.items()
+        f"{names[card_id]} ×{count}" if count > 1 else names[card_id]
+        for card_id, count in counts.items()
     ) or "No deck snapshot yet"
 
 
