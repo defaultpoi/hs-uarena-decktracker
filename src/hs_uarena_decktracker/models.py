@@ -43,4 +43,15 @@ class ArenaRun:
 
     @property
     def current_deck(self) -> DeckSnapshot | None:
-        return self.deck_snapshots[-1] if self.deck_snapshots else None
+        if not self.deck_snapshots:
+            return None
+
+        # Hearthstone can emit a transient/incomplete snapshot while the
+        # resulting deck is still being rebuilt. Prefer the latest complete
+        # 30-card snapshot so the overlay does not briefly show a partial deck.
+        for snapshot in reversed(self.deck_snapshots):
+            if len(snapshot.cards) == 30:
+                return snapshot
+
+        # During the initial draft there may not be a complete snapshot yet.
+        return self.deck_snapshots[-1]
