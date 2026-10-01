@@ -11,9 +11,11 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+gui = ["PySide6>=6.7"]
 
 [project.scripts]
 hs-uarena = "hs_uarena_decktracker.cli:main"
+hs-uarena-gui = "hs_uarena_decktracker.app:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
