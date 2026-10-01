@@ -21,7 +21,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     ]
     lines += [
         f"D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
-        for card in "CFGHIXYZQW"
+        for card in "FGHIXYZQW"
     ]
     lines += [
         "D 12:03:00.0000000 SetDraftMode - REDRAFTING",
