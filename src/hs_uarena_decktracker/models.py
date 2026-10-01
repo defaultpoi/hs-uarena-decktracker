@@ -40,12 +40,17 @@ class ArenaRun:
     hero_card_id: str | None = None
     underground: bool = False
     losses: int = 0
+    games_played: int = 0
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
         return self.losses >= 3
+
+    @property
+    def wins(self) -> int:
+        return max(0, self.games_played - self.losses)
 
     @property
     def current_deck(self) -> DeckSnapshot | None:
