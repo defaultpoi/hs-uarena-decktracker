@@ -167,7 +167,10 @@ class ArenaLogParser:
                 if index + 1 < len(redraft_before_snapshot_indices)
                 else len(snapshots)
             )
-            after_candidates = snapshots[before_index + 1 : next_before_index]
+            # The snapshot immediately before the next redraft is also the
+            # settled result of this redraft, so include that endpoint.
+            end = min(next_before_index + 1, len(snapshots))
+            after_candidates = snapshots[before_index + 1 : end]
             after = after_candidates[-1] if after_candidates else None
 
             if before is None or after is None:
