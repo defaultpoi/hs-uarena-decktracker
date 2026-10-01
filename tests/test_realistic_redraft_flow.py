@@ -24,10 +24,10 @@ def test_realistic_two_redraft_flow_across_sessions(tmp_path):
 
     first_result = [card for card in initial if card not in {"B", "D", "E", "J", "W"}]
     first_result += ["R1", "R2", "R3", "R4"]
-    assert len(first_result) == 30
+    assert len(first_result) == 29
 
     later_gameplay = first_result + ["EXTRA_1", "EXTRA_2"]
-    assert len(later_gameplay) == 32
+    assert len(later_gameplay) == 31
 
     first_lines = deck_lines("12:00:00.0000000", initial)
     first_lines += [
