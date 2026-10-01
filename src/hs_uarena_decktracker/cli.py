@@ -33,6 +33,7 @@ def main() -> None:
             {
                 "number": redraft.number,
                 "started_at": redraft.started_at,
+                "redraft_deck_id": redraft.redraft_deck_id,
                 "ended_at": redraft.ended_at,
                 "selected": [
                     {"id": card.card_id, "name": card.name}
