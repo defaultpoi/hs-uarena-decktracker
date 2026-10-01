@@ -66,7 +66,8 @@ def format_deck(cards: tuple[Card, ...]) -> str:
     counts: Counter[str] = Counter()
 
     for card in cards:
-        names.setdefault(card.card_id, card.display_name())
+        if card.card_id not in names or card.name is not None:
+            names[card.card_id] = card.display_name()
         counts[card.card_id] += 1
 
     return "\n".join(
