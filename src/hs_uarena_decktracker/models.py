@@ -41,6 +41,7 @@ class ArenaRun:
     underground: bool = False
     losses: int = 0
     last_result: str | None = None
+    game_results: list[str] = field(default_factory=list)
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
 
