@@ -181,8 +181,16 @@ class ArenaLogParser:
             after_counts = Counter(card.card_id for card in after.cards)
             removed = before_counts - after_counts
 
+            # The redraft choices carry names, while deck snapshots currently
+            # expose only card IDs. Reuse those names when a selected card is
+            # also discarded so the UI/CLI can show useful names immediately.
+            selected_names = {
+                card.card_id: card.name
+                for card in redraft.selected
+                if card.name is not None
+            }
             discarded = tuple(
-                Card(card_id)
+                Card(card_id, selected_names.get(card_id))
                 for card_id, count in removed.items()
                 for _ in range(count)
             )
