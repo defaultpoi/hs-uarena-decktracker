@@ -21,7 +21,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     ]
     lines += [
         f"D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
-        for card in "FGHIJXYZQW"
+        for card in "CFGHIXYZQW"
     ]
     lines += [
         "D 12:03:00.0000000 SetDraftMode - REDRAFTING",
@@ -36,7 +36,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     # Simulate a later redraft state: only C is demonstrably removed.
     lines += [
         f"D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
-        for card in "BFGHIJXYZ"
+        for card in "CFGHIXYZQW"
     ]
     lines += [
         "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card R",
@@ -46,7 +46,7 @@ def test_tracks_discards_per_redraft(tmp_path):
     run = ArenaLogParser().parse(tmp_path / "Arena.log")
 
     assert len(run.redrafts) == 2
-    assert [card.card_id for card in run.redrafts[0].discarded] == ["A", "B", "C", "D", "E"]
+    assert [card.card_id for card in run.redrafts[0].discarded] == ["A", "B", "D", "E", "J"]
     assert run.redrafts[0].discarded_complete is True
     assert [card.card_id for card in run.redrafts[1].discarded] == ["C"]
     assert run.redrafts[1].discarded_complete is False
