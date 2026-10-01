@@ -13,7 +13,7 @@ def parse_session(session_dir: str | Path) -> ArenaRun:
 
 def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
     """Parse all sessions belonging to the same Arena draft deck."""
-    sessions = [Path(path) for path in session_dirs]
+    sessions = sorted((Path(path) for path in session_dirs), key=lambda path: path.name)
     parser = ArenaLogParser()
 
     parsed = [
