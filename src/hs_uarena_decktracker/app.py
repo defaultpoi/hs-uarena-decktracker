@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-from .discovery import find_log_root, latest_session
-from .session import parse_session
+from .discovery import find_log_root, sessions
+from .session import parse_sessions
 
 
 def main() -> None:
@@ -56,14 +55,14 @@ def main() -> None:
                 self.status.setText("Hearthstone Logs directory not found")
                 return
 
-            session = latest_session(log_root)
-            if session is None:
+            session_dirs = sessions(log_root)
+            if not session_dirs:
                 self.status.setText("No Hearthstone session found")
                 return
 
-            run = parse_session(session)
+            run = parse_sessions(session_dirs)
             if not run.underground:
-                self.status.setText("Latest session is not Underground Arena")
+                self.status.setText("Latest run is not Underground Arena")
                 return
 
             self.status.setText(
