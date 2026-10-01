@@ -22,7 +22,6 @@ def test_realistic_two_redraft_flow_across_sessions(tmp_path):
     assert len(initial) == 30
     assert Counter(initial)["A"] == 2
 
-    first_result = [card for card in initial if card not in {"B", "D", "E", "J"}]
     first_result = [card for card in initial if card not in {"B", "D", "E", "J", "W"}]
     first_result += ["R1", "R2", "R3", "R4"]
     assert len(first_result) == 30
