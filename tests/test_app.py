@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.app import format_deck, format_redraft, log_fingerprint, redraft_state
+from hs_uarena_decktracker.app import format_deck, format_redraft, format_run_status, log_fingerprint, redraft_state
 from hs_uarena_decktracker.models import Card, Redraft
 
 
@@ -122,4 +122,26 @@ def test_formats_completed_redraft_state():
         "REDRAFT #1\n"
         "Selected (1/5): New X\n"
         "Discarded (1/5, complete): Old A"
+    )
+
+
+def test_formats_compact_run_status():
+    from hs_uarena_decktracker.models import ArenaRun
+
+    run = ArenaRun(underground=True, losses=1, last_result="WON", hero_card_id="HERO_11")
+
+    assert format_run_status(run, 30) == (
+        "UNDERGROUND ARENA  •  1/3 losses\n"
+        "30 cards  •  Last: WON  •  Hero: HERO_11"
+    )
+
+
+def test_formats_completed_run_status():
+    from hs_uarena_decktracker.models import ArenaRun
+
+    run = ArenaRun(underground=True, losses=3, last_result="LOST", hero_card_id="HERO_11")
+
+    assert format_run_status(run, 28) == (
+        "UNDERGROUND ARENA  •  RUN COMPLETE\n"
+        "28 cards  •  Last: LOST  •  Hero: HERO_11"
     )
