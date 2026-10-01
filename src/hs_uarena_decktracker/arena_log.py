@@ -15,7 +15,7 @@ _DRAFT_HEADER = re.compile(
 )
 
 _DECK_CARD = re.compile(
-    r"(?P<ts>\d{2}:\d{2}:\d{2}\.\d+) "
+    r"(?P<ts>\d{2}:\d{2}:\d+\.\d+) "
     r"DraftManager\.OnChoicesAndContents - Draft deck contains card (?P<card>\S+)"
 )
 
@@ -33,11 +33,25 @@ class ArenaLogParser:
     """Parse the Arena.log format used by Underground Arena."""
 
     def parse(self, path: str | Path) -> ArenaRun:
-        run = ArenaRun()
         path = Path(path)
-
         if not path.is_file():
-            return run
+            return ArenaRun()
+        return self._parse_lines(
+            path.read_text(encoding="utf-8", errors="replace").splitlines()
+        )
+
+    def parse_many(self, paths: list[str | Path]) -> ArenaRun:
+        lines: list[str] = []
+        for path in paths:
+            path = Path(path)
+            if path.is_file():
+                lines.extend(
+                    path.read_text(encoding="utf-8", errors="replace").splitlines()
+                )
+        return self._parse_lines(lines)
+
+    def _parse_lines(self, lines: list[str]) -> ArenaRun:
+        run = ArenaRun()
 
         snapshot_ts: str | None = None
         snapshot_cards: list[Card] = []
@@ -72,7 +86,7 @@ class ArenaLogParser:
             redraft_started = None
             redraft_selected = []
 
-        for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        for raw_line in lines:
             line = raw_line.strip()
 
             header = _DRAFT_HEADER.search(line)
@@ -117,12 +131,12 @@ class ArenaLogParser:
 
     @staticmethod
     def _infer_discards(run: ArenaRun) -> None:
-        """Infer definitely removed cards by comparing surrounding snapshots."""
+        """Infer removed cards from the deck state surrounding each redraft."""
         snapshots = run.deck_snapshots
 
         inferred: list[Redraft] = []
 
-        for redraft in run.redrafts:
+        for index, redraft in enumerate(run.redrafts):
             if redraft.ended_at is None:
                 inferred.append(redraft)
                 continue
@@ -135,14 +149,25 @@ class ArenaLogParser:
                 ),
                 None,
             )
-            after = next(
-                (
-                    snapshot
-                    for snapshot in snapshots
-                    if snapshot.timestamp > redraft.ended_at
-                ),
-                None,
+
+            # Use the last snapshot before the next redraft. Hearthstone can
+            # emit several post-redraft deck snapshots, and the first one is
+            # not necessarily the settled resulting deck.
+            next_redraft_start = (
+                run.redrafts[index + 1].started_at
+                if index + 1 < len(run.redrafts)
+                else None
             )
+            after_candidates = [
+                snapshot
+                for snapshot in snapshots
+                if snapshot.timestamp > redraft.ended_at
+                and (
+                    next_redraft_start is None
+                    or snapshot.timestamp < next_redraft_start
+                )
+            ]
+            after = after_candidates[-1] if after_candidates else None
 
             if before is None or after is None:
                 inferred.append(redraft)

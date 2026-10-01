@@ -23,11 +23,14 @@ def find_log_root() -> Path | None:
     return None
 
 
+def sessions(log_root: Path) -> list[Path]:
+    """Return Hearthstone session directories in chronological name order."""
+    return sorted(
+        (path for path in log_root.glob("Hearthstone_*") if path.is_dir()),
+        key=lambda path: path.name,
+    )
+
+
 def latest_session(log_root: Path) -> Path | None:
-    sessions = [
-        path for path in log_root.glob("Hearthstone_*")
-        if path.is_dir()
-    ]
-    if not sessions:
-        return None
-    return max(sessions, key=lambda path: path.stat().st_mtime)
+    found = sessions(log_root)
+    return found[-1] if found else None
