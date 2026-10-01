@@ -102,7 +102,7 @@ def test_formats_deck_using_known_name_for_duplicate_card_ids():
     )
 
     assert format_deck(cards) == (
-        "A ×2\n"
+        "Arcane Bolt ×2\n"
         "Fireball"
     )
 
