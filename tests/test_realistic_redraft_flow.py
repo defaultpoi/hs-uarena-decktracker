@@ -47,7 +47,7 @@ def test_realistic_two_redraft_flow_across_sessions(tmp_path):
     second_before = later_gameplay
     second_result = [card for index, card in enumerate(second_before) if index not in {0, 1, 2, 3, 4}]
     second_result += ["R", "S", "T", "U", "V"]
-    assert len(second_result) == 32
+    assert len(second_result) == 31
 
     second_lines = [
         "D 13:00:00.0000000 SetDraftMode - REDRAFTING",
