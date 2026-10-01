@@ -1,7 +1,7 @@
 from hs_uarena_decktracker.arena_log import ArenaLogParser
 
 
-def test_tracks_discards_per_redraft():
+def test_tracks_discards_per_redraft(tmp_path):
     lines = [
         "D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft Deck ID: 1, Hero Card = HERO_11",
     ]
@@ -33,26 +33,20 @@ def test_tracks_discards_per_redraft():
         "D 12:03:06.0000000 SetDraftMode - ACTIVE_DRAFT_DECK",
         "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft Deck ID: 1, Hero Card = HERO_11",
     ]
+    # Simulate a later redraft state: only C is demonstrably removed.
     lines += [
         f"D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card {card}"
-        for card in "FGHIJXYZQW"
-        if card != "C"
+        for card in "BFGHIJXYZ"
     ]
     lines += [
         "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card R",
-        "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card S",
-        "D 12:04:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card T",
     ]
 
-    path = tmp_path = __import__("pathlib").Path(__import__("tempfile").mktemp())
-    path.write_text("\n".join(lines), encoding="utf-8")
-
-    run = ArenaLogParser().parse(path)
+    (tmp_path / "Arena.log").write_text("\n".join(lines), encoding="utf-8")
+    run = ArenaLogParser().parse(tmp_path / "Arena.log")
 
     assert len(run.redrafts) == 2
     assert [card.card_id for card in run.redrafts[0].discarded] == ["A", "B", "C", "D", "E"]
     assert run.redrafts[0].discarded_complete is True
     assert [card.card_id for card in run.redrafts[1].discarded] == ["C"]
     assert run.redrafts[1].discarded_complete is False
-
-    path.unlink()
