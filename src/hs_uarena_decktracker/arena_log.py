@@ -33,11 +33,25 @@ class ArenaLogParser:
     """Parse the Arena.log format used by Underground Arena."""
 
     def parse(self, path: str | Path) -> ArenaRun:
-        run = ArenaRun()
         path = Path(path)
-
         if not path.is_file():
-            return run
+            return ArenaRun()
+        return self._parse_lines(
+            path.read_text(encoding="utf-8", errors="replace").splitlines()
+        )
+
+    def parse_many(self, paths: list[str | Path]) -> ArenaRun:
+        lines: list[str] = []
+        for path in paths:
+            path = Path(path)
+            if path.is_file():
+                lines.extend(
+                    path.read_text(encoding="utf-8", errors="replace").splitlines()
+                )
+        return self._parse_lines(lines)
+
+    def _parse_lines(self, lines: list[str]) -> ArenaRun:
+        run = ArenaRun()
 
         snapshot_ts: str | None = None
         snapshot_cards: list[Card] = []
@@ -72,7 +86,7 @@ class ArenaLogParser:
             redraft_started = None
             redraft_selected = []
 
-        for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        for raw_line in lines:
             line = raw_line.strip()
 
             header = _DRAFT_HEADER.search(line)
