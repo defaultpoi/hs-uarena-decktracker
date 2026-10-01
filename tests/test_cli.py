@@ -41,5 +41,9 @@ D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card 
         {"id": "Q", "name": "Q"},
         {"id": "W", "name": "W"},
     ]
-    assert redraft["discarded"] == [{"id": "A", "name": None}, {"id": "B", "name": None}]
+    assert redraft["discarded"] == [
+        {"id": "A", "name": None},
+        {"id": "B", "name": None},
+        {"id": "C", "name": None},
+    ]
     assert redraft["discarded_complete"] is False
