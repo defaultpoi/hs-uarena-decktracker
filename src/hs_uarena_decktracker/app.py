@@ -181,6 +181,7 @@ def main() -> None:
                 status = f"Underground Arena  •  {run.losses}/3 losses"
             self.status.setText(
                 f"{status}  •  {deck_count} cards"
+                f"  •  Last game: {run.last_result or '—'}"
                 f"  •  Hero {run.hero_card_id or 'unknown'}"
             )
 
