@@ -176,7 +176,7 @@ def main() -> None:
             deck = run.current_deck
             deck_count = len(deck.cards) if deck else 0
             self.status.setText(
-                f"Underground Arena  •  {deck_count}/30 cards"
+                f"Underground Arena  •  {deck_count} cards"
                 f"  •  Hero {run.hero_card_id or 'unknown'}"
             )
 

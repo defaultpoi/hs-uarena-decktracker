@@ -47,12 +47,7 @@ class ArenaRun:
         if not self.deck_snapshots:
             return None
 
-        # Hearthstone can emit a transient/incomplete snapshot while the
-        # resulting deck is still being rebuilt. Prefer the latest complete
-        # 30-card snapshot so the overlay does not briefly show a partial deck.
-        for snapshot in reversed(self.deck_snapshots):
-            if len(snapshot.cards) == 30:
-                return snapshot
-
-        # During the initial draft there may not be a complete snapshot yet.
+        # The newest snapshot is the most current state available in the log.
+        # Do not reject snapshots by card count: gameplay can legitimately
+        # change the deck contents and transient snapshots can be incomplete.
         return self.deck_snapshots[-1]
