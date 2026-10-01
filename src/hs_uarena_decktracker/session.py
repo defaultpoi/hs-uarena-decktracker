@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .arena_log import ArenaLogParser
 from .models import ArenaRun
-from .power_log import is_underground_arena
+from .power_log import count_losses, is_underground_arena
 
 
 def parse_session(session_dir: str | Path) -> ArenaRun:
@@ -37,4 +37,5 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         is_underground_arena(session / "Power.log")
         for session in matching
     )
+    run.losses = sum(count_losses(session / "Power.log") for session in matching)
     return run
