@@ -36,7 +36,7 @@ Run the parser against a session directory:
 python -m hs_uarena_decktracker.cli /path/to/Hearthstone_YYYY_MM_DD_HH_MM_SS
 ```
 
-The parser accepts a Hearthstone log session directory and reads `Arena.log` and `Power.log`.
+The parser accepts a Hearthstone log session directory and reads `Arena.log` and `Power.log`. When the selected session is part of a run that spans multiple Hearthstone sessions, earlier sessions in the same log directory are included while later sessions are ignored.
 
 ## Design notes
 
@@ -56,6 +56,6 @@ SetDraftMode - ACTIVE_DRAFT_DECK
 
 The complete deck is logged by `DraftManager.OnChoicesAndContents`.
 
-The CLI JSON output includes both `selected` and `discarded` cards for each redraft, plus `discarded_complete`.
+The CLI JSON output includes the latest game result as `last_result`, plus both `selected` and `discarded` cards for each redraft and `discarded_complete`.
 
 No telemetry or external service is required by the core parser.
