@@ -102,3 +102,30 @@ D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card 
     assert redraft.discarded == (redraft.selected[0],)
     assert redraft.discarded[0].name == "New A"
     assert redraft.discarded_complete is False
+
+
+def test_does_not_mark_discards_complete_when_choice_log_is_incomplete(tmp_path):
+    arena_log = """\
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft Deck ID: 1, Hero Card = HERO_11
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card A
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card B
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card C
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card D
+D 12:00:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card E
+D 12:01:00.0000000 SetDraftMode - REDRAFTING
+D 12:01:01.0000000 Client chooses: New A (A)
+D 12:01:02.0000000 Client chooses: New X (X)
+D 12:01:03.0000000 SetDraftMode - ACTIVE_DRAFT_DECK
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft Deck ID: 1, Hero Card = HERO_11
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card B
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card C
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card D
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card E
+D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card X
+"""
+    (tmp_path / "Arena.log").write_text(arena_log, encoding="utf-8")
+
+    redraft = ArenaLogParser().parse(tmp_path / "Arena.log").redrafts[0]
+
+    assert [card.card_id for card in redraft.discarded] == ["A"]
+    assert redraft.discarded_complete is False
