@@ -52,6 +52,14 @@ def redraft_state(redraft: Redraft) -> str:
     )
 
 
+def format_run_status(run: ArenaRun, deck_count: int) -> str:
+    """Format the compact run summary shown above the deck."""
+    progress = "RUN COMPLETE" if run.run_ended else f"{run.losses}/3 losses"
+    result = run.last_result or "—"
+    hero = run.hero_card_id or "unknown"
+    return f"UNDERGROUND ARENA  •  {progress}\n{deck_count} cards  •  Last: {result}  •  Hero: {hero}"
+
+
 def format_deck(cards: tuple[Card, ...]) -> str:
     """Format a deck compactly, grouping duplicate cards."""
     counts = Counter(card.display_name() for card in cards)
@@ -175,15 +183,7 @@ def main() -> None:
 
             deck = run.current_deck
             deck_count = len(deck.cards) if deck else 0
-            if run.run_ended:
-                status = f"Underground Arena  •  RUN COMPLETE  •  {run.losses} losses"
-            else:
-                status = f"Underground Arena  •  {run.losses}/3 losses"
-            self.status.setText(
-                f"{status}  •  {deck_count} cards"
-                f"  •  Last game: {run.last_result or '—'}"
-                f"  •  Hero {run.hero_card_id or 'unknown'}"
-            )
+            self.status.setText(format_run_status(run, deck_count))
 
             self.deck.clear()
             self.deck.setPlainText(format_deck(deck.cards) if deck else "No deck snapshot yet")
