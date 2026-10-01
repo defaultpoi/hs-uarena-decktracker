@@ -28,13 +28,13 @@ def test_new_arena_run_resets_loss_count(tmp_path):
     first.mkdir()
     second.mkdir()
 
-    (first / "Arena.log").write_text(_arena("old"), encoding="utf-8")
+    (first / "Arena.log").write_text(_arena("1"), encoding="utf-8")
     (first / "Power.log").write_text(_power(3), encoding="utf-8")
-    (second / "Arena.log").write_text(_arena("new"), encoding="utf-8")
+    (second / "Arena.log").write_text(_arena("2"), encoding="utf-8")
     (second / "Power.log").write_text(_power(1), encoding="utf-8")
 
     run = parse_sessions([first, second])
 
-    assert run.deck_id == "new"
+    assert run.deck_id == "2"
     assert run.losses == 1
     assert run.run_ended is False
