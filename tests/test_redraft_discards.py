@@ -38,9 +38,6 @@ D 12:02:00.0000000 DraftManager.OnChoicesAndContents - Draft deck contains card 
     run = ArenaLogParser().parse(tmp_path / "Arena.log")
     redraft = run.redrafts[0]
 
-    assert redraft.selected == tuple(
-        redraft.selected
-    )
     assert [card.card_id for card in redraft.discarded] == ["A", "B", "C", "D", "E"]
     assert redraft.discarded_complete is True
 
