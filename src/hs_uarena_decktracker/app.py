@@ -127,8 +127,13 @@ def main() -> None:
 
             self.redraft_label = QLabel("REDRAFT STATUS")
             self.redraft_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.redraft_current = QLabel("No redrafts yet")
+            self.redraft_current.setWordWrap(True)
+            self.redraft_current.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
+            )
             self.redrafts = QListWidget()
-            self.redrafts.setMaximumHeight(170)
+            self.redrafts.setMaximumHeight(130)
 
             layout = QVBoxLayout()
             layout.setContentsMargins(8, 8, 8, 8)
@@ -137,6 +142,7 @@ def main() -> None:
             layout.addWidget(self.deck_label)
             layout.addWidget(self.deck)
             layout.addWidget(self.redraft_label)
+            layout.addWidget(self.redraft_current)
             layout.addWidget(self.redrafts)
 
             root = QWidget()
@@ -156,6 +162,7 @@ def main() -> None:
                 self.status.setText("Hearthstone Logs directory not found")
                 self.deck.clear()
                 self.redrafts.clear()
+                self.redraft_current.setText("No redrafts yet")
                 return
 
             session_dirs = sessions(log_root)
@@ -190,13 +197,13 @@ def main() -> None:
 
             self.redrafts.clear()
             if run.redrafts:
-                self.redrafts.addItem(redraft_state(run.redrafts[-1]))
-                self.redrafts.addItem("")
-                self.redrafts.addItem("HISTORY")
-                for redraft in run.redrafts[:-1]:
-                    self.redrafts.addItem(format_redraft(redraft))
+                self.redraft_current.setText(redraft_state(run.redrafts[-1]))
+                if len(run.redrafts) > 1:
+                    self.redrafts.addItem("HISTORY")
+                    for redraft in reversed(run.redrafts[:-1]):
+                        self.redrafts.addItem(format_redraft(redraft))
             else:
-                self.redrafts.addItem("No redrafts yet")
+                self.redraft_current.setText("No redrafts yet")
 
 
     app = QApplication(sys.argv)
