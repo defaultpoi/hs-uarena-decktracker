@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 from .models import ArenaRun, Card, DeckSnapshot, Redraft
@@ -110,4 +112,57 @@ class ArenaLogParser:
         if redraft_started is not None:
             finish_redraft(None)
 
+        self._infer_discards(run)
         return run
+
+    @staticmethod
+    def _infer_discards(run: ArenaRun) -> None:
+        """Infer definitely removed cards by comparing surrounding snapshots."""
+        snapshots = run.deck_snapshots
+
+        inferred: list[Redraft] = []
+
+        for redraft in run.redrafts:
+            if redraft.ended_at is None:
+                inferred.append(redraft)
+                continue
+
+            before = next(
+                (
+                    snapshot
+                    for snapshot in reversed(snapshots)
+                    if snapshot.timestamp < redraft.started_at
+                ),
+                None,
+            )
+            after = next(
+                (
+                    snapshot
+                    for snapshot in snapshots
+                    if snapshot.timestamp > redraft.ended_at
+                ),
+                None,
+            )
+
+            if before is None or after is None:
+                inferred.append(redraft)
+                continue
+
+            before_counts = Counter(card.card_id for card in before.cards)
+            after_counts = Counter(card.card_id for card in after.cards)
+            removed = before_counts - after_counts
+
+            discarded = tuple(
+                Card(card_id)
+                for card_id, count in removed.items()
+                for _ in range(count)
+            )
+            inferred.append(
+                replace(
+                    redraft,
+                    discarded=discarded,
+                    discarded_complete=sum(removed.values()) == 5,
+                )
+            )
+
+        run.redrafts = inferred

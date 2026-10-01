@@ -29,6 +29,8 @@ class Redraft:
     started_at: str
     selected: tuple[Card, ...]
     ended_at: str | None = None
+    discarded: tuple[Card, ...] = ()
+    discarded_complete: bool = False
 
 
 @dataclass
