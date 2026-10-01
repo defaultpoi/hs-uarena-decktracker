@@ -13,10 +13,11 @@ The first implementation focuses on the client logs that expose Underground Aren
 - Arena draft identity and hero.
 - Current 30-card deck snapshots.
 - Five-card redraft selections.
+- Inferred redraft discards, with completeness information.
 - Detection of the transition between `REDRAFTING` and `ACTIVE_DRAFT_DECK`.
 - A small Python API that can be used by a future Qt overlay.
 
-The parser intentionally does **not** guess which five old cards were replaced when the log does not expose that mapping.
+The parser infers discarded cards by comparing the settled deck snapshot before a redraft with the settled deck snapshot after it. When the logs do not provide enough evidence, the result is marked incomplete rather than treating the inference as complete.
 
 ## Development
 
@@ -54,5 +55,7 @@ SetDraftMode - ACTIVE_DRAFT_DECK
 ```
 
 The complete deck is logged by `DraftManager.OnChoicesAndContents`.
+
+The CLI JSON output includes both `selected` and `discarded` cards for each redraft, plus `discarded_complete`.
 
 No telemetry or external service is required by the core parser.
