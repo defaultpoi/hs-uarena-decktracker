@@ -64,10 +64,13 @@ def format_run_progress(run: ArenaRun) -> str:
     """Format the ordered game/redraft progression without inventing timestamps."""
     lines: list[str] = []
 
+    redraft_number = 0
     for index, result in enumerate(run.game_results, start=1):
         lines.append(f"GAME #{index}: {result}")
-        if result == "LOST" and index <= len(run.redrafts):
-            lines.append(f"  ↳ REDRAFT #{index}")
+        if result == "LOST":
+            redraft_number += 1
+            if redraft_number <= len(run.redrafts):
+                lines.append(f"  ↳ REDRAFT #{redraft_number}")
 
     if not lines:
         return "No games recorded"
