@@ -40,6 +40,7 @@ class ArenaRun:
     hero_card_id: str | None = None
     underground: bool = False
     losses: int = 0
+    last_result: str | None = None
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
 
