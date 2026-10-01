@@ -39,8 +39,14 @@ class ArenaRun:
     deck_id: str | None = None
     hero_card_id: str | None = None
     underground: bool = False
+    losses: int = 0
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
+
+    @property
+    @property
+    def run_ended(self) -> bool:
+        return self.losses >= 3
 
     @property
     def current_deck(self) -> DeckSnapshot | None:
