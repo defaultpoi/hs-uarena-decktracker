@@ -175,8 +175,12 @@ def main() -> None:
 
             deck = run.current_deck
             deck_count = len(deck.cards) if deck else 0
+            if run.run_ended:
+                status = f"Underground Arena  •  RUN COMPLETE  •  {run.losses} losses"
+            else:
+                status = f"Underground Arena  •  {run.losses}/3 losses"
             self.status.setText(
-                f"Underground Arena  •  {deck_count} cards"
+                f"{status}  •  {deck_count} cards"
                 f"  •  Hero {run.hero_card_id or 'unknown'}"
             )
 

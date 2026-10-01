@@ -19,6 +19,8 @@ def main() -> None:
         "underground_arena": run.underground,
         "deck_id": run.deck_id,
         "hero_card_id": run.hero_card_id,
+        "losses": run.losses,
+        "run_ended": run.run_ended,
         "deck_snapshots": [
             {
                 "timestamp": snapshot.timestamp,
