@@ -65,7 +65,8 @@ def test_cli_includes_last_game_result(tmp_path, monkeypatch, capsys):
             losses=1,
             last_result="WON",
             game_results=["LOST", "WON"],
-        ),\n    )
+        ),
+    )
     monkeypatch.setattr(sys, "argv", ["hs-uarena", str(session)])
 
     cli.main()
