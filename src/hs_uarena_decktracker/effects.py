@@ -40,7 +40,7 @@ class _Entity:
 
 def _card(card_id: str, name: str | None, database: CardDatabase | None) -> Card:
     data = database.get(card_id) if database is not None else None
-    return Card(card_id, name or (data.name if data else None), data.text if data else None)
+    log_name = name if name and not name.startswith("UNKNOWN ENTITY") else None\n    return Card(card_id, log_name or (data.name if data else None), data.text if data else None)
 
 def latest_deck_effects(path: str | Path, database: CardDatabase | None = None) -> list[DeckEffect]:
     """Return generated cards placed into the local player's deck."""
