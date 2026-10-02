@@ -160,6 +160,13 @@ class CardDatabase:
         self.ensure_loaded()
         return self._cards.get(card_id) if self._cards is not None else None
 
+    def find_by_name(self, name: str) -> tuple[CardData, ...]:
+        """Return cards whose database name exactly matches the supplied name."""
+        self.ensure_loaded()
+        if self._cards is None:
+            return ()
+        return tuple(card for card in self._cards.values() if card.name == name)
+
     def __len__(self) -> int:
         self.ensure_loaded()
         return len(self._cards or {})
