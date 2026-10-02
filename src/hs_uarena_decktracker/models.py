@@ -7,9 +7,13 @@ from dataclasses import dataclass, field
 class Card:
     card_id: str
     name: str | None = None
+    text: str | None = None
 
     def display_name(self) -> str:
         return self.name or self.card_id
+
+    def display_text(self) -> str:
+        return self.text or ""
 
 
 @dataclass(frozen=True)
@@ -45,6 +49,7 @@ class ArenaRun:
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
     start_of_game_duplicates: list[Card] = field(default_factory=list)
+    generated_deck_cards: list[Card] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
