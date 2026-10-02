@@ -79,6 +79,7 @@ class ArenaRun:
     start_of_game_duplicates: list[Card] = field(default_factory=list)
     generated_deck_cards: list[Card] = field(default_factory=list)
     deck_effects: list[GeneratedDeckCard] = field(default_factory=list)
+    deck_removals: list[Card] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
@@ -92,14 +93,22 @@ class ArenaRun:
 
     @property
     def effective_deck(self) -> tuple[Card, ...]:
-        """Best known deck state from the latest draft plus current generated cards."""
+        """Best known current deck from draft cards, zone removals, and generated cards."""
         snapshot = self.current_deck
         if snapshot is None:
             return ()
 
         cards = list(snapshot.cards)
-        cards.extend(effect.card for effect in self.deck_effects if effect.in_deck)
-        return tuple(cards)
+        removals = Counter(card.card_id for card in self.deck_removals)
+        remaining: list[Card] = []
+        for card in cards:
+            if removals[card.card_id]:
+                removals[card.card_id] -= 1
+            else:
+                remaining.append(card)
+
+        remaining.extend(effect.card for effect in self.deck_effects if effect.in_deck)
+        return tuple(remaining)
 
     @property
     def effective_deck_counts(self) -> Counter[str]:
