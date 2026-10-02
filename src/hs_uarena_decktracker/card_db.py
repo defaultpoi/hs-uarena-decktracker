@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -165,12 +166,8 @@ class CardDatabase:
 
     @staticmethod
     def _build_from_url(url: str) -> str | None:
-        parts = url.rstrip("/").split("/")
-        try:
-            index = parts.index("v1")
-            return parts[index + 2] if parts[index + 1] != "latest" else None
-        except (ValueError, IndexError):
-            return None
+        match = re.search(r"/v1/(\\d+)/", url)
+        return match.group(1) if match else None
 
 
 def cache_is_stale(
