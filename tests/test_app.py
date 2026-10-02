@@ -6,7 +6,8 @@ from hs_uarena_decktracker.app import (
     log_fingerprint,
     redraft_state,
 )
-from hs_uarena_decktracker.models import ArenaRun, Card, Redraft\nfrom hs_uarena_decktracker.effects import DeckEffect
+from hs_uarena_decktracker.models import ArenaRun, Card, Redraft
+from hs_uarena_decktracker.effects import DeckEffect
 
 
 def test_formats_complete_redraft_with_discarded_cards():
