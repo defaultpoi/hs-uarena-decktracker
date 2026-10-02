@@ -1,5 +1,5 @@
 from hs_uarena_decktracker.effects import latest_deck_effects
-from hs_uarena_decktracker.models import ArenaRun, Card, DeckSnapshot
+from hs_uarena_decktracker.models import ArenaRun, Card, DeckSnapshot, GeneratedDeckCard
 
 
 def test_generated_card_must_enter_deck(tmp_path):
@@ -53,8 +53,8 @@ def test_effective_deck_combines_snapshot_and_generated_cards():
         ]
     )
     run.deck_effects = [
-        type("Effect", (), {"card": Card("C")})(),
-        type("Effect", (), {"card": Card("D")})(),
+        GeneratedDeckCard(Card("C"), Card("S"), "CARD_EFFECT", "ADDED_TO_DECK", "test"),
+        GeneratedDeckCard(Card("D"), Card("S"), "CARD_EFFECT", "ADDED_TO_DECK", "test"),
     ]
     assert [card.card_id for card in run.effective_deck] == ["A", "A", "B", "C", "D"]
     assert run.effective_deck_counts["A"] == 2
