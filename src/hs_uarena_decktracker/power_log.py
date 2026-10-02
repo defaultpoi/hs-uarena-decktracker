@@ -37,7 +37,9 @@ def game_results(path: str | Path) -> list[str]:
             if local_player is None:
                 choice = _LOCAL_PLAYER.search(line)
                 if choice:
-                    local_player = choice.group("player")
+                    candidate = choice.group("player").strip()
+                    if candidate not in {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}:
+                        local_player = candidate
             if local_player is not None:
                 match = _RESULT.search(line)
                 if match and match.group("player") == local_player:
