@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.power_log import count_losses, game_results
+from hs_uarena_decktracker.power_log import count_losses, game_results, latest_start_of_game_duplicates
 
 
 def test_counts_only_local_player_losses(tmp_path):
