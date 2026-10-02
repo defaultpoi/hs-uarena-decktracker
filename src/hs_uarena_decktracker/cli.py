@@ -41,7 +41,13 @@ def main() -> None:
         "run_ended": run.run_ended,
         "last_result": run.last_result,
         "game_results": run.game_results,
-        "effective_deck": [\n            {"id": card.card_id, "name": card.name, "text": card.text}\n            for card in run.effective_deck\n        ],\n        "deck_effects": [\n            {\n                "card": {"id": effect.card.card_id, "name": effect.card.name, "text": effect.card.text},\n                "source_card": {"id": effect.source_card.card_id, "name": effect.source_card.name, "text": effect.source_card.text},\n                "trigger": effect.trigger,\n                "event": effect.event,\n                "reason": effect.reason,\n                "entity_id": effect.entity_id,\n                "source_entity_id": effect.source_entity_id,\n                "game_index": effect.game_index,\n            }\n            for effect in run.deck_effects\n        ],\n        "deck_snapshots": [
+        "effective_deck": [
+            {"id": card.card_id, "name": card.name, "text": card.text}
+            for card in run.effective_deck
+        ],
+        "deck_effects": [
+            {\n                "card": {"id": effect.card.card_id, "name": effect.card.name, "text": effect.card.text},\n                "source_card": {"id": effect.source_card.card_id, "name": effect.source_card.name, "text": effect.source_card.text},\n                "trigger": effect.trigger,\n                "event": effect.event,\n                "reason": effect.reason,\n                "entity_id": effect.entity_id,\n                "source_entity_id": effect.source_entity_id,\n                "game_index": effect.game_index,\n            }\n            for effect in run.deck_effects\n        ],
+        "deck_snapshots": [
             {
                 "timestamp": snapshot.timestamp,
                 "cards": [
