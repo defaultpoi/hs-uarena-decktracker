@@ -22,6 +22,8 @@ D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -     TAG_CHANGE Entity=[enti
     assert effect.event == "ADDED_TO_DECK"
     assert effect.entity_id == 206
     assert effect.source_entity_id == 73
+    assert effect.in_deck is True
+    assert effect.final_zone == "DECK"
 
 
 def test_opponent_generated_card_is_ignored_when_local_controller_is_known(tmp_path):
@@ -69,7 +71,10 @@ D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=7
 """,
         encoding="utf-8",
     )
-    assert latest_deck_effects(power) == []
+    effects = latest_deck_effects(power)
+    assert len(effects) == 1
+    assert effects[0].in_deck is False
+    assert effects[0].final_zone == "SETASIDE"
 
 
 def test_only_latest_game_contributes_generated_cards(tmp_path):
