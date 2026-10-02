@@ -51,9 +51,18 @@ class GeneratedDeckCard:
     entity_id: int | None = None
     source_entity_id: int | None = None
     game_index: int | None = None
+    in_deck: bool = True
+    final_zone: str | None = None
+
+    @property
+    def generated(self) -> Card:
+        return self.card
+
+    @property
+    def source(self) -> Card:
+        return self.source_card
 
 
-# Backward-compatible name used by the first generated-card implementation.
 DeckEffect = GeneratedDeckCard
 
 
@@ -83,18 +92,13 @@ class ArenaRun:
 
     @property
     def effective_deck(self) -> tuple[Card, ...]:
-        """Best known deck state: latest draft snapshot plus current generated cards.
-
-        The Arena log remains authoritative for drafted/redrafted cards. Power.log
-        contributes only generated cards whose latest observed event says they are
-        currently in the local player's deck.
-        """
+        """Best known deck state from the latest draft plus current generated cards."""
         snapshot = self.current_deck
         if snapshot is None:
             return ()
 
         cards = list(snapshot.cards)
-        cards.extend(effect.card for effect in self.deck_effects)
+        cards.extend(effect.card for effect in self.deck_effects if effect.in_deck)
         return tuple(cards)
 
     @property
