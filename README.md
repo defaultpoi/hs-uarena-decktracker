@@ -59,3 +59,18 @@ The complete deck is logged by `DraftManager.OnChoicesAndContents`.
 The CLI JSON output includes the latest game result as `last_result`, plus both `selected` and `discarded` cards for each redraft and `discarded_complete`.
 
 No telemetry or external service is required by the core parser.
+
+
+## Card database
+
+The tracker uses the full HearthstoneJSON card database, including non-collectible/generated cards. It stores card type, class, set, rarity, stats, rules text, mechanics, play requirements, entourage data, and the original raw attributes.
+
+The database is cached at `~/.cache/hs-uarena-decktracker/cards.enUS.json` and is **not downloaded during the GUI refresh loop**.
+
+Update it after Hearthstone patches or when new cards are released:
+
+```sh
+hs-uarena --update-cards
+```
+
+The update command follows HearthstoneJSON's `/v1/latest/` endpoint, so it always fetches the current build rather than a hard-coded expansion.

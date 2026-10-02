@@ -1,4 +1,4 @@
-from hs_uarena_decktracker.power_log import count_losses, game_results
+from hs_uarena_decktracker.power_log import count_losses, game_results, latest_start_of_game_duplicates
 
 
 def test_counts_only_local_player_losses(tmp_path):
@@ -72,3 +72,30 @@ def test_game_results_skips_unknown_human_player_placeholder(tmp_path):
 
     assert game_results(power) == ["WON", "WON", "LOST", "LOST", "WON", "LOST"]
     assert count_losses(power) == 3
+
+
+def test_latest_start_of_game_duplicates(tmp_path):
+    power = tmp_path / "Power.log"
+    power.write_text(
+        """
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - BLOCK_START BlockType=TRIGGER Entity=[entityName=Chainbreaker Hogger id=14 zone=DECK zonePos=0 cardId=JAIL_384 player=1] EffectCardId=x EffectIndex=1 Target=0 SubOption=-1 TriggerKeyword=START_OF_GAME_KEYWORD
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=72 zone=DECK zonePos=0 cardId= player=1] CardID=BT_123
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=COPIED_FROM_ENTITY_ID value=33
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=73 zone=DECK zonePos=0 cardId= player=1] CardID=BAR_721
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=COPIED_FROM_ENTITY_ID value=13
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     BLOCK_END
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=[entityName=Kargath Bladefist id=72 zone=DECK zonePos=0 cardId=BT_123 player=1] tag=ZONE value=DECK
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=[entityName=Mankrik id=73 zone=DECK zonePos=0 cardId=BAR_721 player=1] tag=ZONE value=DECK
+""",
+        encoding="utf-8",
+    )
+    assert [card.card_id for card in latest_start_of_game_duplicates(power)] == [
+        "BT_123",
+        "BAR_721",
+    ]
+    assert [card.name for card in latest_start_of_game_duplicates(power)] == [
+        "Kargath Bladefist",
+        "Mankrik",
+    ]

@@ -4,7 +4,12 @@ from pathlib import Path
 
 from .arena_log import ArenaLogParser
 from .models import ArenaRun
-from .power_log import game_results, is_underground_arena, latest_result
+from .power_log import (
+    game_results,
+    is_underground_arena,
+    latest_result,
+    latest_start_of_game_duplicates,
+)
 
 
 def parse_session(session_dir: str | Path) -> ArenaRun:
@@ -47,5 +52,8 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         result = latest_result(session / "Power.log")
         if result is not None:
             run.last_result = result
+            run.start_of_game_duplicates = latest_start_of_game_duplicates(
+                session / "Power.log"
+            )
             break
     return run

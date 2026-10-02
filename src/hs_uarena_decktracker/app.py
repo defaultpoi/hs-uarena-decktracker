@@ -57,7 +57,15 @@ def format_run_status(run: ArenaRun, deck_count: int) -> str:
     progress = "RUN COMPLETE" if run.run_ended else f"{run.losses}/3 losses"
     result = run.last_result or "—"
     hero = run.hero_card_id or "unknown"
-    return f"UNDERGROUND ARENA  •  {progress}\n{deck_count} cards  •  Last: {result}  •  Hero: {hero}"
+    effect = (
+        f"  •  Start of game: +{len(run.start_of_game_duplicates)}"
+        if run.start_of_game_duplicates
+        else ""
+    )
+    return (
+        f"UNDERGROUND ARENA  •  {progress}\n"
+        f"{deck_count} cards{effect}  •  Last: {result}  •  Hero: {hero}"
+    )
 
 
 def format_run_progress(run: ArenaRun) -> str:
@@ -75,13 +83,13 @@ def format_run_progress(run: ArenaRun) -> str:
     if not lines:
         return "No games recorded"
 
-    if run.run_ended:
+    if run.run_ended or run.game_results.count("LOST") >= 3:
         lines.append("RUN COMPLETE")
 
     return "\n".join(lines)
 
 
-def format_deck(cards: tuple[Card, ...]) -> str:
+def format_deck(cards: tuple[Card, ...], start_of_game_duplicates: list[Card] | None = None) -> str:
     """Format a deck compactly, grouping duplicate cards."""
     names: dict[str, str] = {}
     counts: Counter[str] = Counter()
@@ -236,7 +244,11 @@ def main() -> None:
             self.status.setText(format_run_status(run, deck_count))
 
             self.deck.clear()
-            self.deck.setPlainText(format_deck(deck.cards) if deck else "No deck snapshot yet")
+            self.deck.setPlainText(
+                format_deck(deck.cards, run.start_of_game_duplicates)
+                if deck
+                else "No deck snapshot yet"
+            )
 
             self.redrafts.clear()
             if run.redrafts:
