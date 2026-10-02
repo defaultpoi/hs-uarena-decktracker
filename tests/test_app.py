@@ -7,6 +7,7 @@ from hs_uarena_decktracker.app import (
     redraft_state,
 )
 from hs_uarena_decktracker.models import ArenaRun, Card, Redraft
+from hs_uarena_decktracker.effects import DeckEffect
 
 
 def test_formats_complete_redraft_with_discarded_cards():
@@ -197,4 +198,27 @@ def test_formats_run_progress_without_inventing_timestamps():
         "  ↳ REDRAFT #2\n"
         "GAME #4: LOST\n"
         "RUN COMPLETE"
+    )
+
+
+def test_formats_deck_effects_compactly():
+    effects = [
+        DeckEffect(
+            source=Card("JAIL_384", "Chainbreaker Hogger"),
+            generated=Card("BT_123", "Kargath Bladefist"),
+            trigger="START_OF_GAME",
+            reason="Start of Game effect copied this card into the deck",
+        ),
+        DeckEffect(
+            source=Card("BAR_721", "Mankrik"),
+            generated=Card("BAR_721t", "Olgra, Mankrik's Wife"),
+            trigger="CARD_EFFECT",
+            reason="Card effect created this card in the deck",
+        ),
+    ]
+
+    from hs_uarena_decktracker.app import format_deck_effects
+    assert format_deck_effects(effects) == (
+        "Chainbreaker Hogger → Kargath Bladefist\n"
+        "Mankrik → Olgra, Mankrik's Wife"
     )
