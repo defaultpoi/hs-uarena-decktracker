@@ -89,6 +89,14 @@ def format_run_progress(run: ArenaRun) -> str:
     return "\n".join(lines)
 
 
+def format_deck_effects(effects: list[object]) -> str:
+    """Format generated deck cards as compact source → generated entries."""
+    return "\n".join(
+        f"{effect.source.display_name()} → {effect.generated.display_name()}"
+        for effect in effects
+    ) or "No generated deck effects detected"
+
+
 def format_deck(cards: tuple[Card, ...], start_of_game_duplicates: list[Card] | None = None) -> str:
     """Format a deck compactly, grouping duplicate cards."""
     names: dict[str, str] = {}
@@ -154,11 +162,18 @@ def main() -> None:
             self.status.setWordWrap(True)
             self.status.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+            self.effects_label = QLabel("DECK EFFECTS")
+            self.effects_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.effects = QPlainTextEdit()
+            self.effects.setReadOnly(True)
+            self.effects.setMaximumHeight(85)
+            self.effects.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+
             self.deck_label = QLabel("CURRENT DECK")
             self.deck_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.deck = QPlainTextEdit()
             self.deck.setReadOnly(True)
-            self.deck.setMaximumHeight(300)
+            self.deck.setMaximumHeight(230)
             self.deck.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
 
             self.redraft_label = QLabel("REDRAFT STATUS")
@@ -185,6 +200,8 @@ def main() -> None:
             layout.addWidget(self.status)
             layout.addWidget(self.deck_label)
             layout.addWidget(self.deck)
+            layout.addWidget(self.effects_label)
+            layout.addWidget(self.effects)
             layout.addWidget(self.redraft_label)
             layout.addWidget(self.redraft_current)
             layout.addWidget(self.redrafts)
@@ -207,6 +224,7 @@ def main() -> None:
                 self._cached_run = None
                 self.status.setText("Hearthstone Logs directory not found")
                 self.deck.clear()
+                self.effects.clear()
                 self.redrafts.clear()
                 self.redraft_current.setText("No redrafts yet")
                 self.progress.setText("No games recorded")
@@ -249,6 +267,7 @@ def main() -> None:
                 if deck
                 else "No deck snapshot yet"
             )
+            self.effects.setPlainText(format_deck_effects(run.deck_effects))
 
             self.redrafts.clear()
             if run.redrafts:
