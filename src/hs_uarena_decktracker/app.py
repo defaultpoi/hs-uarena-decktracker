@@ -90,11 +90,26 @@ def format_run_progress(run: ArenaRun) -> str:
 
 
 def format_deck_effects(effects: list[object]) -> str:
-    """Format generated deck cards as compact source → generated entries."""
-    return "\n".join(
-        f"{effect.source.display_name()} → {effect.generated.display_name()}"
-        for effect in effects
-    ) or "No generated deck effects detected"
+    """Format generated cards as grouped, human-readable deck effects."""
+    if not effects:
+        return "No generated deck effects detected"
+
+    lines: list[str] = []
+    current_trigger: str | None = None
+    current_source: str | None = None
+    for effect in effects:
+        if effect.trigger != current_trigger:
+            current_trigger = effect.trigger
+            current_source = None
+            lines.append(current_trigger.replace("_", " "))
+        source = effect.source_card.display_name()
+        if source != current_source:
+            current_source = source
+            lines.append(source)
+        generated = effect.card.display_name()
+        detail = effect.card.display_text()
+        lines.append(f"  + {generated}" + (f" — {detail}" if detail else ""))
+    return "\n".join(lines)
 
 
 def format_deck(cards: tuple[Card, ...], start_of_game_duplicates: list[Card] | None = None) -> str:
@@ -258,14 +273,12 @@ def main() -> None:
                 return
 
             deck = run.current_deck
-            deck_count = len(deck.cards) if deck else 0
+            deck_count = len(run.effective_deck)
             self.status.setText(format_run_status(run, deck_count))
 
             self.deck.clear()
             self.deck.setPlainText(
-                format_deck(deck.cards, run.start_of_game_duplicates)
-                if deck
-                else "No deck snapshot yet"
+                format_deck(run.effective_deck) if run.effective_deck else "No deck snapshot yet"
             )
             self.effects.setPlainText(format_deck_effects(run.deck_effects))
 
