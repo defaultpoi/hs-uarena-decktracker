@@ -7,7 +7,7 @@ def test_generated_card_must_enter_deck(tmp_path):
     power.write_text(
         """D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=2 Player=Local#1 TaskList=1
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Mankrik id=73 zone=PLAY zonePos=0 cardId=BAR_721 player=2] CardID=BAR_721
-D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - FULL_ENTITY - Updating Entity=[entityName=Olgra, Mankrik's Wife id=206 zone=SETASIDE zonePos=0 cardId= player=2] CardID=BAR_721t
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Olgra, Mankrik's Wife id=206 zone=SETASIDE zonePos=0 cardId= player=2] CardID=BAR_721t
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=73
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -     TAG_CHANGE Entity=[entityName=Olgra, Mankrik's Wife id=206 zone=SETASIDE zonePos=0 cardId=BAR_721t player=2] tag=ZONE value=DECK
 """,
