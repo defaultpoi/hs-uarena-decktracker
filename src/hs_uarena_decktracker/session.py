@@ -62,7 +62,7 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         run.last_result = result
         power_log = session / "Power.log"
         run.start_of_game_duplicates = latest_start_of_game_duplicates(power_log)
-        run.deck_effects = latest_deck_effects(power_log)
+        run.deck_effects = latest_deck_effects(power_log, database)
         run.generated_deck_cards = [effect.card for effect in run.deck_effects]
         break
 
