@@ -56,12 +56,14 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
     run.losses = run.game_results.count("LOST")
 
     for session in reversed(matching):
-        result = latest_result(session / "Power.log")
-        if result is None:
+        power_log = session / "Power.log"
+        if not power_log.is_file():
             continue
 
-        run.last_result = result
-        power_log = session / "Power.log"
+        result = latest_result(power_log)
+        if result is not None:
+            run.last_result = result
+
         run.start_of_game_duplicates = latest_start_of_game_duplicates(power_log)
         run.deck_effects = latest_deck_effects(power_log, database)
         run.generated_deck_cards = [effect.card for effect in run.deck_effects]
