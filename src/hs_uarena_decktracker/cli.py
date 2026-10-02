@@ -13,8 +13,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Parse a Hearthstone Underground Arena log session."
     )
-    parser.add_argument("session", nargs="?", help="Hearthstone_YYYY_MM_DD_HH_MM_SS directory")
-    parser.add_argument("--update-cards", action="store_true", help="download the latest full Hearthstone card database")
+    parser.add_argument(
+        "session",
+        nargs="?",
+        help="Hearthstone_YYYY_MM_DD_HH_MM_SS directory",
+    )
+    parser.add_argument(
+        "--update-cards",
+        action="store_true",
+        help="download the latest full Hearthstone card database",
+    )
     args = parser.parse_args()
 
     if args.update_cards:
@@ -46,7 +54,28 @@ def main() -> None:
             for card in run.effective_deck
         ],
         "deck_effects": [
-            {\n                "card": {"id": effect.card.card_id, "name": effect.card.name, "text": effect.card.text},\n                "source_card": {"id": effect.source_card.card_id, "name": effect.source_card.name, "text": effect.source_card.text},\n                "trigger": effect.trigger,\n                "event": effect.event,\n                "reason": effect.reason,\n                "entity_id": effect.entity_id,\n                "source_entity_id": effect.source_entity_id,\n                "game_index": effect.game_index,\n            }\n            for effect in run.deck_effects\n        ],
+            {
+                "card": {
+                    "id": effect.card.card_id,
+                    "name": effect.card.name,
+                    "text": effect.card.text,
+                },
+                "source_card": {
+                    "id": effect.source_card.card_id,
+                    "name": effect.source_card.name,
+                    "text": effect.source_card.text,
+                },
+                "trigger": effect.trigger,
+                "event": effect.event,
+                "reason": effect.reason,
+                "entity_id": effect.entity_id,
+                "source_entity_id": effect.source_entity_id,
+                "game_index": effect.game_index,
+                "in_deck": effect.in_deck,
+                "final_zone": effect.final_zone,
+            }
+            for effect in run.deck_effects
+        ],
         "deck_snapshots": [
             {
                 "timestamp": snapshot.timestamp,
