@@ -20,7 +20,7 @@ _ENTITY = re.compile(
     r"player=(?P<player>\d+)\](?: CardID=(?P<shown_card_id>\S+))?"
 )
 _SIMPLE_ENTITY = re.compile(
-    r"(?:SHOW_ENTITY|FULL_ENTITY) - Updating Entity=\[entityName=(?P<name>.*?) "
+    r"(?:SHOW_ENTITY|FULL_ENTITY) - Updating (?:Entity=)?\[entityName=(?P<name>.*?) "
     r"id=(?P<entity_id>\d+) zone=(?P<zone>\S+) zonePos=.*? "
     r"cardId=(?P<card_id>\S*) player=(?P<player>\d+)\] CardID=(?P<shown>\S+)"
 )
