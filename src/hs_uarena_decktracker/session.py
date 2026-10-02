@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .arena_log import ArenaLogParser
 from .card_db import CardDatabase
+from .deck_state import latest_deck_removals
 from .effects import latest_deck_effects
 from .models import ArenaRun
 from .power_log import (
@@ -64,6 +65,11 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         run.start_of_game_duplicates = latest_start_of_game_duplicates(power_log)
         run.deck_effects = latest_deck_effects(power_log, database)
         run.generated_deck_cards = [effect.card for effect in run.deck_effects]
+        if run.current_deck is not None:
+            run.deck_removals = latest_deck_removals(
+                power_log,
+                run.current_deck.cards,
+            )
         break
 
     return run
