@@ -169,7 +169,7 @@ def latest_generated_deck_cards(path: str | Path) -> list[Card]:
     has_creator = False
 
     for line in lines[start_index:]:
-        entity = _ENTITY.search(line)
+        entity = _COPIED_ENTITY.search(line)
         if entity:
             if pending and casts_when_drawn and has_creator:
                 generated.append(pending)
