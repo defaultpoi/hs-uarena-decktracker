@@ -176,7 +176,7 @@ def latest_generated_deck_cards(path: str | Path) -> list[Card]:
             pending = (
                 entity.group("entity_id"),
                 entity.group("card_id"),
-                entity.group("name"),
+                entity.group("card_id"),
             )
             casts_when_drawn = False
             has_creator = False
