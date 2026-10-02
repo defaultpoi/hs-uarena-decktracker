@@ -63,7 +63,7 @@ def format_run_status(run: ArenaRun, deck_count: int) -> str:
         else ""
     )
     return (
-        f"UNDERGROUND ARENA  •  {progress}\\n"
+        f"UNDERGROUND ARENA  •  {progress}\n"
         f"{deck_count} cards{effect}  •  Last: {result}  •  Hero: {hero}"
     )
 
