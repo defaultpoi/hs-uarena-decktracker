@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
 
 
@@ -38,6 +39,33 @@ class Redraft:
     discarded_complete: bool = False
 
 
+@dataclass(frozen=True)
+class GeneratedDeckCard:
+    """A card created by another card and observed entering the local deck."""
+
+    card: Card
+    source_card: Card
+    trigger: str
+    event: str
+    reason: str
+    entity_id: int | None = None
+    source_entity_id: int | None = None
+    game_index: int | None = None
+    in_deck: bool = True
+    final_zone: str | None = None
+
+    @property
+    def generated(self) -> Card:
+        return self.card
+
+    @property
+    def source(self) -> Card:
+        return self.source_card
+
+
+DeckEffect = GeneratedDeckCard
+
+
 @dataclass
 class ArenaRun:
     deck_id: str | None = None
@@ -50,7 +78,8 @@ class ArenaRun:
     redrafts: list[Redraft] = field(default_factory=list)
     start_of_game_duplicates: list[Card] = field(default_factory=list)
     generated_deck_cards: list[Card] = field(default_factory=list)
-    deck_effects: list[DeckEffect] = field(default_factory=list)
+    deck_effects: list[GeneratedDeckCard] = field(default_factory=list)
+    deck_removals: list[Card] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
@@ -60,8 +89,27 @@ class ArenaRun:
     def current_deck(self) -> DeckSnapshot | None:
         if not self.deck_snapshots:
             return None
-
-        # The newest snapshot is the most current state available in the log.
-        # Do not reject snapshots by card count: gameplay can legitimately
-        # change the deck contents and transient snapshots can be incomplete.
         return self.deck_snapshots[-1]
+
+    @property
+    def effective_deck(self) -> tuple[Card, ...]:
+        """Best known current deck from draft cards, zone removals, and generated cards."""
+        snapshot = self.current_deck
+        if snapshot is None:
+            return ()
+
+        cards = list(snapshot.cards)
+        removals = Counter(card.card_id for card in self.deck_removals)
+        remaining: list[Card] = []
+        for card in cards:
+            if removals[card.card_id]:
+                removals[card.card_id] -= 1
+            else:
+                remaining.append(card)
+
+        remaining.extend(effect.card for effect in self.deck_effects if effect.in_deck)
+        return tuple(remaining)
+
+    @property
+    def effective_deck_counts(self) -> Counter[str]:
+        return Counter(card.card_id for card in self.effective_deck)
