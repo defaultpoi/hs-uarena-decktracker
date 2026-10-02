@@ -38,6 +38,7 @@ class _Entity:
     player: int
     zone: str
     creator_id: int | None = None
+    ever_in_deck: bool = False
 
 
 def _card(card_id: str, name: str | None, database: CardDatabase | None) -> Card:
@@ -127,11 +128,17 @@ def latest_deck_effects(
                 continue
 
             card_id = entity.group("shown_card_id") or entity.group("card_id")
+            previous = entities.get(entity_id)
             entities[entity_id] = _Entity(
                 card_id=card_id,
                 name=entity.group("name"),
                 player=player,
                 zone=entity.group("zone"),
+                creator_id=previous.creator_id if previous else None,
+                ever_in_deck=(
+                    (previous.ever_in_deck if previous else False)
+                    or entity.group("zone") == "DECK"
+                ),
             )
             current_entity = entity_id
             continue
@@ -145,6 +152,8 @@ def latest_deck_effects(
                 value = tag_change.group("value").strip()
                 if tag == "ZONE":
                     state.zone = value
+                    if value == "DECK":
+                        state.ever_in_deck = True
                 elif tag == "CREATOR":
                     try:
                         state.creator_id = int(value)
@@ -174,7 +183,7 @@ def latest_deck_effects(
     effects: list[GeneratedDeckCard] = []
     for entity_id in generated_order:
         entity = entities.get(entity_id)
-        if entity is None or entity.creator_id is None or entity.zone != "DECK":
+        if entity is None or entity.creator_id is None or not entity.ever_in_deck:
             continue
 
         source = entities.get(entity.creator_id)
@@ -201,6 +210,8 @@ def latest_deck_effects(
                 entity_id=entity_id,
                 source_entity_id=entity.creator_id,
                 game_index=game_index,
+                in_deck=entity.zone == "DECK",
+                final_zone=entity.zone,
             )
         )
 
