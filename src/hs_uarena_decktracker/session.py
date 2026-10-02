@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .arena_log import ArenaLogParser
+from .card_db import CardDatabase
 from .effects import latest_deck_effects
 from .models import ArenaRun
 from .power_log import (
@@ -21,6 +22,9 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
     """Parse all sessions belonging to the same Arena draft deck."""
     sessions = sorted((Path(path) for path in session_dirs), key=lambda path: path.name)
     parser = ArenaLogParser()
+    database = CardDatabase()
+    if database.cache_path.is_file():
+        database.load()
 
     parsed = [
         (session, parser.parse(session / "Arena.log"))
