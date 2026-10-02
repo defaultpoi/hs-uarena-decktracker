@@ -83,7 +83,7 @@ def format_run_progress(run: ArenaRun) -> str:
     if not lines:
         return "No games recorded"
 
-    if run.run_ended:
+    if run.run_ended or run.game_results.count("LOST") >= 3:
         lines.append("RUN COMPLETE")
 
     return "\n".join(lines)
