@@ -56,3 +56,36 @@ def test_effective_deck_combines_snapshot_and_generated_cards():
     ]
     assert [card.card_id for card in run.effective_deck] == ["A", "A", "B", "C", "D"]
     assert run.effective_deck_counts["A"] == 2
+
+
+
+def test_generated_card_not_in_deck_is_not_reconciled(tmp_path):
+    power = tmp_path / "Power.log"
+    power.write_text(
+        """D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=2 Player=Local#1 TaskList=1
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Mankrik id=73 zone=PLAY zonePos=0 cardId=BAR_721 player=2] CardID=BAR_721
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Olgra, Mankrik's Wife id=206 zone=SETASIDE zonePos=0 cardId= player=2] CardID=BAR_721t
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=73
+""",
+        encoding="utf-8",
+    )
+    assert latest_deck_effects(power) == []
+
+
+def test_only_latest_game_contributes_generated_cards(tmp_path):
+    power = tmp_path / "Power.log"
+    power.write_text(
+        """D 01:00:00.0000000 GameState.DebugPrintPower() - CREATE_GAME
+D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=2 Player=Local#1 TaskList=1
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Old Source id=10 zone=DECK zonePos=0 cardId=OLD_001 player=2] CardID=OLD_001
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Old Generated id=11 zone=DECK zonePos=0 cardId= player=2] CardID=OLD_002
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=10
+D 02:00:00.0000000 GameState.DebugPrintPower() - CREATE_GAME
+D 02:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=New Source id=20 zone=DECK zonePos=0 cardId=NEW_001 player=2] CardID=NEW_001
+D 02:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=New Generated id=21 zone=DECK zonePos=0 cardId= player=2] CardID=NEW_002
+D 02:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=20
+""",
+        encoding="utf-8",
+    )
+    effects = latest_deck_effects(power)
+    assert [effect.card.card_id for effect in effects] == ["NEW_002"]
