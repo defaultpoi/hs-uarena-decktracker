@@ -50,6 +50,7 @@ class ArenaRun:
     redrafts: list[Redraft] = field(default_factory=list)
     start_of_game_duplicates: list[Card] = field(default_factory=list)
     generated_deck_cards: list[Card] = field(default_factory=list)
+    deck_effects: list[DeckEffect] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
