@@ -41,8 +41,13 @@ class _Entity:
 
 
 def _card(card_id: str, name: str | None, database: CardDatabase | None) -> Card:
-    data = database.get(card_id) if database is not None else None
+    data = database.get(card_id) if database is not None and card_id else None
     log_name = name if name and not name.startswith("UNKNOWN ENTITY") else None
+    if data is None and log_name and database is not None:
+        matches = database.find_by_name(log_name)
+        if len(matches) == 1:
+            data = matches[0]
+            card_id = data.card_id
     return Card(
         card_id,
         log_name or (data.name if data else None),
