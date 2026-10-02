@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .arena_log import ArenaLogParser
+from .effects import latest_deck_effects
 from .models import ArenaRun
 from .power_log import (
     game_results,
@@ -48,12 +49,17 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         for result in game_results(session / "Power.log")
     ]
     run.losses = run.game_results.count("LOST")
+
     for session in reversed(matching):
         result = latest_result(session / "Power.log")
-        if result is not None:
-            run.last_result = result
-            run.start_of_game_duplicates = latest_start_of_game_duplicates(
-                session / "Power.log"
-            )
-            break
+        if result is None:
+            continue
+
+        run.last_result = result
+        power_log = session / "Power.log"
+        run.start_of_game_duplicates = latest_start_of_game_duplicates(power_log)
+        run.deck_effects = latest_deck_effects(power_log)
+        run.generated_deck_cards = [effect.card for effect in run.deck_effects]
+        break
+
     return run
