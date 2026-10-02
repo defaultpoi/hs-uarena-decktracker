@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .card_db import CardDatabase
 from .discovery import sessions
 from .session import parse_sessions
 
@@ -12,8 +13,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Parse a Hearthstone Underground Arena log session."
     )
-    parser.add_argument("session", help="Hearthstone_YYYY_MM_DD_HH_MM_SS directory")
+    parser.add_argument("session", nargs="?", help="Hearthstone_YYYY_MM_DD_HH_MM_SS directory")
+    parser.add_argument("--update-cards", action="store_true", help="download the latest full Hearthstone card database")
     args = parser.parse_args()
+
+    if args.update_cards:
+        count = CardDatabase().update()
+        print(f"Updated Hearthstone card database: {count} cards")
+        if not args.session:
+            return
+
+    if not args.session:
+        parser.error("session is required unless --update-cards is used")
 
     session = Path(args.session).expanduser()
     if not session.is_dir():
