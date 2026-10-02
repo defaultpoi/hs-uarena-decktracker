@@ -11,8 +11,8 @@ _PLAYER_CHOICE = re.compile(
     r"GameState\.DebugPrintEntityChoices\(\) - id=(?P<entity_id>\d+) "
     r"Player=(?P<player>.+?) TaskList="
 )
-_SHOW_ENTITY = re.compile(
-    r"SHOW_ENTITY - Updating Entity=\[entityName=(?P<name>.*?) "
+_ENTITY_CREATE = re.compile(
+    r"(?:SHOW_ENTITY|FULL_ENTITY) - Updating (?:Entity=)?\[entityName=(?P<name>.*?) "
     r"id=(?P<entity_id>\d+) zone=(?P<zone>\S+) zonePos=.*? "
     r"cardId=(?P<card_id>\S*) player=(?P<player>\d+)\] "
     r"CardID=(?P<shown_card_id>\S+)"
@@ -73,7 +73,7 @@ def latest_deck_effects(path: str | Path, database: CardDatabase | None = None) 
                 _Entity(start.group("card_id"), start.group("name"), int(start.group("player")), "DECK"),
             )
 
-        show = _SHOW_ENTITY.search(line)
+        show = _ENTITY_CREATE.search(line)
         if show:
             entity_id = int(show.group("entity_id"))
             if int(show.group("player")) in local_player_ids:
