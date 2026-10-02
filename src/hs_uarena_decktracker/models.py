@@ -49,7 +49,7 @@ class ArenaRun:
     deck_snapshots: list[DeckSnapshot] = field(default_factory=list)
     redrafts: list[Redraft] = field(default_factory=list)
     start_of_game_duplicates: list[Card] = field(default_factory=list)
-    generated_deck_cards: list[Card] = field(default_factory=list)\n    deck_effects: list[object] = field(default_factory=list)
+    generated_deck_cards: list[Card] = field(default_factory=list)\n    deck_effects: list[DeckEffect] = field(default_factory=list)
 
     @property
     def run_ended(self) -> bool:
