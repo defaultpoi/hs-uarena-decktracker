@@ -221,7 +221,10 @@ class ArenaLogParser:
                 replace(
                     redraft,
                     discarded=discarded,
-                    discarded_complete=(\n                        len(redraft.selected) == 5\n                        and sum(removed.values()) == 5\n                    ),
+                    discarded_complete=(
+                        len(redraft.selected) == 5
+                        and sum(removed.values()) == 5
+                    ),
                 )
             )
 
