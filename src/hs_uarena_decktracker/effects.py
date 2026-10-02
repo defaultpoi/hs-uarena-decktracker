@@ -69,13 +69,6 @@ def latest_deck_effects(
 
     all_lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
 
-    local_entity_ids = {
-        int(match.group("entity_id"))
-        for line in all_lines
-        if (match := _PLAYER_CHOICE.search(line))
-        and match.group("player").strip() not in {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
-    }
-
     create_indices = [
         index for index, line in enumerate(all_lines) if _CREATE_GAME.search(line)
     ]
@@ -83,20 +76,31 @@ def latest_deck_effects(
     game_index = len(create_indices)
     lines = all_lines[latest_start:]
 
-    # Map the local player entity to its controller/player id in this game.
+    # DebugPrintEntityChoices identifies the local player by name and also
+    # includes one or more entity records with that player's numeric controller.
+    # Use the first non-placeholder choice in the latest game rather than
+    # assuming PlayerID=1/2.
     local_player_ids: set[int] = set()
-    for line in lines[:1200]:
-        match = re.search(
-            r"Player EntityID=(?P<entity_id>\d+) PlayerID=(?P<player_id>\d+)",
-            line,
-        )
-        if match and int(match.group("entity_id")) in local_entity_ids:
-            local_player_ids.add(int(match.group("player_id")))
+    for index, line in enumerate(lines[:1200]):
+        choice = _PLAYER_CHOICE.search(line)
+        if not choice or choice.group("player").strip() in {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}:
+            continue
+        for following in lines[index + 1:index + 12]:
+            entity = re.search(r"player=(?P<player>\d+)\]", following)
+            if entity:
+                local_player_ids.add(int(entity.group("player")))
+                break
+        if local_player_ids:
+            break
 
-    # Small fixtures may omit Player EntityID records. In that case the choice
-    # entity id is the only local-player identity available.
+    # Compact fixtures may omit the choice entity list; their choice id is the
+    # only local-player identity available.
     if not local_player_ids:
-        local_player_ids = set(local_entity_ids)
+        for line in lines[:1200]:
+            choice = _PLAYER_CHOICE.search(line)
+            if choice and choice.group("player").strip() not in {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}:
+                local_player_ids.add(int(choice.group("entity_id")))
+                break
 
     entities: dict[int, _Entity] = {}
     generated_order: list[int] = []
