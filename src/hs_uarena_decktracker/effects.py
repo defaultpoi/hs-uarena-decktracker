@@ -24,6 +24,11 @@ _BLOCK_START = re.compile(
     r".*?cardId=(?P<card_id>\S+) player=(?P<player>\d+)\].*?"
     r"TriggerKeyword=(?P<trigger>\S+)"
 )
+_BLOCK_SOURCE = re.compile(
+    r"BLOCK_START .*?Entity=\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
+    r"zone=(?P<zone>\S+) zonePos=.*? cardId=(?P<card_id>\S*) "
+    r"player=(?P<player>\d+)\]"
+)
 _TAG_CHANGE = re.compile(
     r"TAG_CHANGE Entity=\[entityName=.*? id=(?P<entity_id>\d+) .*?\] "
     r"tag=(?P<tag>\S+) value=(?P<value>.+?)\s*$"
@@ -108,6 +113,10 @@ def latest_deck_effects(
                 local_player_ids.add(int(choice.group("entity_id")))
                 break
 
+    def is_local(player: int) -> bool:
+        # When the local controller cannot be identified, do not filter.
+        return not local_player_ids or player in local_player_ids
+
     entities: dict[int, _Entity] = {}
     generated_order: list[int] = []
     start_sources: set[int] = set()
@@ -116,14 +125,29 @@ def latest_deck_effects(
     for line in lines:
         block = _BLOCK_START.search(line)
         if block and block.group("trigger") == "START_OF_GAME_KEYWORD":
-            if int(block.group("player")) in local_player_ids:
+            if is_local(int(block.group("player"))):
                 start_sources.add(int(block.group("entity_id")))
+
+        # A block's source entity may only ever be described by the BLOCK_START
+        # line itself (e.g. Start of Game sources still in the deck), so record
+        # it unless a fuller entity record has already been seen.
+        source_block = _BLOCK_SOURCE.search(line)
+        if source_block:
+            source_id = int(source_block.group("entity_id"))
+            source_player = int(source_block.group("player"))
+            if source_id not in entities and is_local(source_player):
+                entities[source_id] = _Entity(
+                    card_id=source_block.group("card_id"),
+                    name=source_block.group("name"),
+                    player=source_player,
+                    zone=source_block.group("zone"),
+                )
 
         entity = _ENTITY.search(line)
         if entity:
             entity_id = int(entity.group("entity_id"))
             player = int(entity.group("player"))
-            if player not in local_player_ids:
+            if not is_local(player):
                 current_entity = None
                 continue
 
