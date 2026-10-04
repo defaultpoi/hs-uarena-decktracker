@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from .arena_log import ArenaLogParser
+from .card_db import CardDatabase
+from .deck_state import latest_deck_removals
+from .effects import latest_deck_effects
 from .models import ArenaRun
 from .power_log import (
     game_results,
@@ -20,6 +23,9 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
     """Parse all sessions belonging to the same Arena draft deck."""
     sessions = sorted((Path(path) for path in session_dirs), key=lambda path: path.name)
     parser = ArenaLogParser()
+    database = CardDatabase()
+    if database.cache_path.is_file():
+        database.load()
 
     parsed = [
         (session, parser.parse(session / "Arena.log"))
@@ -48,12 +54,24 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         for result in game_results(session / "Power.log")
     ]
     run.losses = run.game_results.count("LOST")
+
     for session in reversed(matching):
-        result = latest_result(session / "Power.log")
+        power_log = session / "Power.log"
+        if not power_log.is_file():
+            continue
+
+        result = latest_result(power_log)
         if result is not None:
             run.last_result = result
-            run.start_of_game_duplicates = latest_start_of_game_duplicates(
-                session / "Power.log"
+
+        run.start_of_game_duplicates = latest_start_of_game_duplicates(power_log)
+        run.deck_effects = latest_deck_effects(power_log, database)
+        run.generated_deck_cards = [effect.card for effect in run.deck_effects]
+        if run.current_deck is not None:
+            run.deck_removals = latest_deck_removals(
+                power_log,
+                run.current_deck.cards,
             )
-            break
+        break
+
     return run

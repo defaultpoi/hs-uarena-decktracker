@@ -6,8 +6,7 @@ from hs_uarena_decktracker.app import (
     log_fingerprint,
     redraft_state,
 )
-from hs_uarena_decktracker.models import ArenaRun, Card, Redraft
-from hs_uarena_decktracker.effects import DeckEffect
+from hs_uarena_decktracker.models import ArenaRun, Card, GeneratedDeckCard, Redraft
 
 
 def test_formats_complete_redraft_with_discarded_cards():
@@ -201,24 +200,37 @@ def test_formats_run_progress_without_inventing_timestamps():
     )
 
 
-def test_formats_deck_effects_compactly():
+def test_formats_deck_effects_grouped_by_trigger_and_source():
     effects = [
-        DeckEffect(
-            source=Card("JAIL_384", "Chainbreaker Hogger"),
-            generated=Card("BT_123", "Kargath Bladefist"),
+        GeneratedDeckCard(
+            card=Card("BT_123", "Kargath Bladefist"),
+            source_card=Card("JAIL_384", "Chainbreaker Hogger"),
             trigger="START_OF_GAME",
+            event="CREATED_IN_DECK",
             reason="Start of Game effect copied this card into the deck",
         ),
-        DeckEffect(
-            source=Card("BAR_721", "Mankrik"),
-            generated=Card("BAR_721t", "Olgra, Mankrik's Wife"),
+        GeneratedDeckCard(
+            card=Card("BAR_721t", "Olgra, Mankrik's Wife"),
+            source_card=Card("BAR_721", "Mankrik"),
             trigger="CARD_EFFECT",
+            event="CREATED_IN_DECK",
             reason="Card effect created this card in the deck",
         ),
     ]
 
     from hs_uarena_decktracker.app import format_deck_effects
+
     assert format_deck_effects(effects) == (
-        "Chainbreaker Hogger → Kargath Bladefist\n"
-        "Mankrik → Olgra, Mankrik's Wife"
+        "START OF GAME\n"
+        "Chainbreaker Hogger\n"
+        "  + Kargath Bladefist\n"
+        "CARD EFFECT\n"
+        "Mankrik\n"
+        "  + Olgra, Mankrik's Wife"
     )
+
+
+def test_format_deck_effects_empty():
+    from hs_uarena_decktracker.app import format_deck_effects
+
+    assert format_deck_effects([]) == "No generated deck effects detected"
