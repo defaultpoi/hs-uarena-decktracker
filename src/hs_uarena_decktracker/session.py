@@ -11,7 +11,6 @@ from .power_log import (
     game_results,
     is_underground_arena,
     latest_result,
-    latest_start_of_game_duplicates,
     latest_deck_effects,
 )
 
@@ -74,13 +73,14 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         result = latest_result(session / "Power.log")
         if result is not None:
             run.last_result = result
-            run.start_of_game_duplicates = [
-                enrich(card)
-                for card in latest_start_of_game_duplicates(session / "Power.log")
-            ]
             run.deck_effects = [
                 replace(effect, source=enrich(effect.source), generated=enrich(effect.generated))
                 for effect in latest_deck_effects(session / "Power.log")
+            ]
+            run.start_of_game_duplicates = [
+                effect.generated
+                for effect in run.deck_effects
+                if effect.trigger == "START_OF_GAME"
             ]
             break
     return run

@@ -139,13 +139,14 @@ def latest_start_of_game_duplicates(path: str | Path) -> list[Card]:
 
 
 _ENTITY_DETAILS = re.compile(
-    r"(?:Entity=|Updating Entity=)\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
+    r"(?:Entity=|Updating Entity=|Updating )\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
     r"zone=(?P<zone>\w+) zonePos=-?\d+ cardId=(?P<card_id>\S*) "
     r"player=(?P<player>\d+)\]"
 )
 _CARD_ID_UPDATE = re.compile(r"\] CardID=(?P<card_id>\S+)")
 _TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\S+)")
 _UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
+_PLAYER_IDENTITY = re.compile(r"PlayerID=(?P<player_id>\d+), PlayerName=(?P<player>.+?)\s*$")
 
 
 def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
@@ -173,6 +174,11 @@ def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
 
     entities: dict[int, dict[str, object]] = {}
     local_player_id: int | None = None
+    for line in lines:
+        player_identity = _PLAYER_IDENTITY.search(line)
+        if player_identity and player_identity.group("player").strip() == local_name:
+            local_player_id = int(player_identity.group("player_id"))
+            break
     current_entity_id: int | None = None
     start_of_game_sources: set[int] = set()
 
@@ -202,10 +208,9 @@ def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
             entities[entity_id] = entity
             if name == local_name:
                 local_player_id = int(descriptor.group("player"))
-            continue
 
-        # Some Power.log tag lines omit an entity descriptor and refer to the
-        # entity established by the immediately preceding SHOW_ENTITY block.
+        # Process tags even when the same line contains an entity descriptor,
+        # as happens with TAG_CHANGE Entity=[...] entries.
         tag = _TAG_VALUE.search(line)
         if tag and current_entity_id is not None:
             entity = entities.get(current_entity_id)
