@@ -108,6 +108,7 @@ def test_latest_deck_effects_tracks_copies_and_generated_cards_for_local_player(
     power.write_text(
         """\\
 D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=1 Player=Local#1234 TaskList=1 ChoiceType=MULLIGAN CountMin=0 CountMax=5
+D 01:00:00.0000000 GameState.DebugPrintGame() - PlayerID=1, PlayerName=Local#1234
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - FULL_ENTITY - Creating ID=1 CardID=HERO_01
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Local#1234 id=1 zone=PLAY zonePos=0 cardId=HERO_01 player=1] CardID=HERO_01
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - BLOCK_START BlockType=TRIGGER Entity=[entityName=Chainbreaker Hogger id=14 zone=DECK zonePos=0 cardId=JAIL_384 player=1] EffectCardId=x EffectIndex=1 Target=0 SubOption=-1 TriggerKeyword=START_OF_GAME_KEYWORD
@@ -140,6 +141,7 @@ def test_latest_deck_effects_supports_full_entity_and_entity_tag_change_logs(tmp
     power.write_text(
         """\\
 D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=1 Player=Local#1234 TaskList=1 ChoiceType=MULLIGAN CountMin=0 CountMax=5
+D 01:00:00.0000000 GameState.DebugPrintGame() - PlayerID=1, PlayerName=Local#1234
 D 01:00:00.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Local#1234 id=1 zone=PLAY zonePos=0 cardId=HERO_01 player=1] CardID=HERO_01
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - BLOCK_START BlockType=TRIGGER Entity=[entityName=Chainbreaker Hogger id=14 zone=DECK zonePos=0 cardId=JAIL_384 player=1] EffectCardId=x EffectIndex=1 Target=0 SubOption=-1 TriggerKeyword=START_OF_GAME_KEYWORD
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     FULL_ENTITY - Updating [entityName=UNKNOWN ENTITY [cardType=INVALID] id=72 zone=DECK zonePos=0 cardId= player=1] CardID=
