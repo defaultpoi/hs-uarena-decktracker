@@ -192,6 +192,7 @@ def _parse_deck_effect_segment(
                 "card_id": card_id or previous.get("card_id"),
                 "player": int(descriptor.group("player")),
                 "zone": descriptor.group("zone"),
+                "ever_in_deck": descriptor.group("zone") == "DECK" or previous.get("ever_in_deck", False),
                 "creator": previous.get("creator"),
                 "copied_from": previous.get("copied_from"),
             }
@@ -203,7 +204,7 @@ def _parse_deck_effect_segment(
             current_entity_id = entity_id
             entity = entities.setdefault(entity_id, {
                 "name": None, "card_id": None, "player": None, "zone": None,
-                "creator": None, "copied_from": None,
+                "ever_in_deck": False, "creator": None, "copied_from": None,
             })
             if record.group("card_id"):
                 entity["card_id"] = record.group("card_id")
@@ -230,6 +231,8 @@ def _parse_deck_effect_segment(
                         pass
                 elif tag.group("tag") == "ZONE":
                     entity["zone"] = tag.group("value")
+                    if tag.group("value") == "DECK":
+                        entity["ever_in_deck"] = True
                 elif tag.group("tag") == "CONTROLLER":
                     try:
                         entity["player"] = int(tag.group("value"))
@@ -244,7 +247,7 @@ def _parse_deck_effect_segment(
 
     effects: list[DeckEffect] = []
     for entity_id, entity in entities.items():
-        if entity.get("player") != local_player_id or entity.get("zone") != "DECK":
+        if entity.get("player") != local_player_id or not entity.get("ever_in_deck", False):
             continue
         creator_id = entity.get("creator")
         copied_from = entity.get("copied_from")
