@@ -145,6 +145,7 @@ _ENTITY_DETAILS = re.compile(
 )
 _CARD_ID_UPDATE = re.compile(r"\] CardID=(?P<card_id>\S+)")
 _TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\S+)")
+_TAG_ENTITY_ID = re.compile(r"\bEntity=(?P<entity_id>\d+)\s+tag=(?:CREATOR|COPIED_FROM_ENTITY_ID|ZONE)\b
 _UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
 _PLAYER_IDENTITY = re.compile(r"PlayerID=(?P<player_id>\d+), PlayerName=(?P<player>.+?)\s*$")
 
@@ -189,8 +190,14 @@ def _parse_deck_effect_segment(
             }
 
         tag = _TAG_VALUE.search(line)
-        if tag and current_entity_id is not None:
-            entity = entities.get(current_entity_id)
+        tag_entity = _TAG_ENTITY_ID.search(line)
+        target_entity_id = (
+            int(tag_entity.group("entity_id"))
+            if tag_entity
+            else current_entity_id
+        )
+        if tag and target_entity_id is not None:
+            entity = entities.get(target_entity_id)
             if entity is not None:
                 if tag.group("tag") == "CREATOR":
                     try:
