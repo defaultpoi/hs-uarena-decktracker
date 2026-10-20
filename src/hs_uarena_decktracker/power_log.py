@@ -206,7 +206,6 @@ def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
         # Process tags even when the same line contains an entity descriptor,
         # as happens with TAG_CHANGE Entity=[...] entries.
         tag = _TAG_VALUE.search(line)
-        tag = _TAG_VALUE.search(line)
         if tag and current_entity_id is not None:
             entity = entities.get(current_entity_id)
             if entity is None:
