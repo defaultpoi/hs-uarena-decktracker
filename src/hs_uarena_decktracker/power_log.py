@@ -233,7 +233,7 @@ def _parse_deck_effect_segment(
         generated_name = entity.get("name")
         source = Card(source_card_id, source_name if isinstance(source_name, str) else None)
         generated = Card(generated_id, generated_name if isinstance(generated_name, str) else None)
-        trigger = "START_OF_GAME" if creator_id in start_of_game_sources else None
+        trigger = "START_OF_GAME" if creator_id in start_of_game_sources else "CARD_EFFECT"
         reason = "copied" if isinstance(copied_from, int) else "generated"
         effects.append(DeckEffect(source=source, generated=generated, trigger=trigger, reason=reason))
 
