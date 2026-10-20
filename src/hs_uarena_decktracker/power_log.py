@@ -146,6 +146,7 @@ _ENTITY_DETAILS = re.compile(
 _CARD_ID_UPDATE = re.compile(r"\] CardID=(?P<card_id>\S+)")
 _TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\S+)")
 _UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
+_PLAYER_IDENTITY = re.compile(r"PlayerID=(?P<player_id>\d+), PlayerName=(?P<player>.+?)\s*$")
 
 
 def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
@@ -173,6 +174,11 @@ def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
 
     entities: dict[int, dict[str, object]] = {}
     local_player_id: int | None = None
+    for line in lines:
+        player_identity = _PLAYER_IDENTITY.search(line)
+        if player_identity and player_identity.group("player").strip() == local_name:
+            local_player_id = int(player_identity.group("player_id"))
+            break
     current_entity_id: int | None = None
     start_of_game_sources: set[int] = set()
 
