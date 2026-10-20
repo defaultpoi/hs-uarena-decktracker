@@ -164,3 +164,35 @@ D 01:00:01.0000000 GameState.DebugPrintPower() -     TAG_CHANGE Entity=[entityNa
         ("BAR_721", "BAR_721t"),
     ]
     assert effects[0].trigger == "START_OF_GAME"
+
+
+def test_latest_deck_effects_scopes_reused_entity_ids_to_each_game(tmp_path):
+    from hs_uarena_decktracker.power_log import latest_deck_effects
+
+    power = tmp_path / "Power.log"
+    power.write_text(
+        """\\
+D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=1 Player=Local#1234 TaskList=1 ChoiceType=MULLIGAN CountMin=0 CountMax=5
+D 01:00:00.0000000 GameState.DebugPrintGame() - GameType=GT_UNDERGROUND_ARENA
+D 01:00:00.0000000 GameState.DebugPrintGame() - PlayerID=2, PlayerName=Local#1234
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - BLOCK_START BlockType=TRIGGER Entity=[entityName=Chainbreaker Hogger id=14 zone=DECK zonePos=0 cardId=JAIL_384 player=2] EffectCardId=x EffectIndex=1 Target=0 SubOption=-1 TriggerKeyword=START_OF_GAME_KEYWORD
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     FULL_ENTITY - Updating [entityName=Kargath Bladefist id=72 zone=DECK zonePos=0 cardId=BT_123 player=2] CardID=BT_123
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=COPIED_FROM_ENTITY_ID value=33
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     BLOCK_END
+D 01:00:01.0000000 GameState.DebugPrintGame() - GameType=GT_UNDERGROUND_ARENA
+D 01:00:01.0000000 GameState.DebugPrintGame() - PlayerID=1, PlayerName=Local#1234
+D 01:00:01.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Mankrik id=14 zone=PLAY zonePos=0 cardId=BAR_721 player=1] CardID=BAR_721
+D 01:00:01.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Olgra, Mankrik's Wife id=72 zone=SETASIDE zonePos=0 cardId=BAR_721t player=1] CardID=BAR_721t
+D 01:00:01.0000000 GameState.DebugPrintPower() -         tag=CREATOR value=14
+D 01:00:01.0000000 GameState.DebugPrintPower() -     TAG_CHANGE Entity=[entityName=Olgra, Mankrik's Wife id=72 zone=SETASIDE zonePos=0 cardId=BAR_721t player=1] tag=ZONE value=DECK
+""",
+        encoding="utf-8",
+    )
+
+    effects = latest_deck_effects(power)
+    assert [(effect.source.card_id, effect.generated.card_id) for effect in effects] == [
+        ("JAIL_384", "BT_123"),
+        ("BAR_721", "BAR_721t"),
+    ]
+    assert [effect.trigger for effect in effects] == ["START_OF_GAME", "CARD_EFFECT"]
