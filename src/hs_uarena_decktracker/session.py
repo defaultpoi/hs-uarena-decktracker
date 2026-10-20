@@ -9,6 +9,7 @@ from .power_log import (
     is_underground_arena,
     latest_result,
     latest_start_of_game_duplicates,
+    latest_deck_effects,
 )
 
 
@@ -55,5 +56,6 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
             run.start_of_game_duplicates = latest_start_of_game_duplicates(
                 session / "Power.log"
             )
+            run.deck_effects = latest_deck_effects(session / "Power.log")
             break
     return run
