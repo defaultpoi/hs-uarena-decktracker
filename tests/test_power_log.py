@@ -119,7 +119,7 @@ D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Enti
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=81 zone=DECK zonePos=0 cardId= player=1] CardID=BAR_721t
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=80
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=ZONE value=DECK
-D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Opponent generated id=90 zone=DECK zonePos=0 cardId= cardId= player=2] CardID=BT_123
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Opponent generated id=90 zone=DECK zonePos=0 cardId=BT_123 player=2] CardID=BT_123
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
 """,
         encoding="utf-8",
