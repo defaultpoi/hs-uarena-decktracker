@@ -116,6 +116,7 @@ D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     SHOW_ENTITY - Updating 
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=COPIED_FROM_ENTITY_ID value=33
 D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     BLOCK_END
+D 01:00:00.5000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=[entityName=Kargath Bladefist id=72 zone=DECK zonePos=0 cardId=BT_123 player=1] tag=ZONE value=PLAY
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Mankrik id=80 zone=PLAY zonePos=0 cardId=BAR_721 player=1] CardID=BAR_721
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=81 zone=DECK zonePos=0 cardId= player=1] CardID=BAR_721t
 D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=80
