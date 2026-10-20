@@ -144,8 +144,13 @@ _ENTITY_DETAILS = re.compile(
     r"player=(?P<player>\d+)\]"
 )
 _CARD_ID_UPDATE = re.compile(r"\] CardID=(?P<card_id>\S+)")
-_TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\S+)")
-_TAG_ENTITY_ID = re.compile(r"\bEntity=(?P<entity_id>\d+)\s+tag=(?:CREATOR|COPIED_FROM_ENTITY_ID|ZONE)\b
+_ENTITY_CREATE = re.compile(r"FULL_ENTITY - Creating ID=(?P<entity_id>\d+) CardID=(?P<card_id>\S*)")
+_ENTITY_NUMERIC_UPDATE = re.compile(
+    r"(?:SHOW_ENTITY - (?:Updating|Revealing) Entity=|FULL_ENTITY - Updating Entity=)"
+    r"(?P<entity_id>\d+) CardID=(?P<card_id>\S*)"
+)
+_TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE|CONTROLLER) value=(?P<value>\S+)")
+_TAG_ENTITY_ID = re.compile(r"\bEntity=(?P<entity_id>\d+)\s+tag=(?:CREATOR|COPIED_FROM_ENTITY_ID|ZONE|CONTROLLER)\b")
 _UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
 _PLAYER_IDENTITY = re.compile(r"PlayerID=(?P<player_id>\d+), PlayerName=(?P<player>.+?)\s*$")
 
@@ -171,6 +176,8 @@ def _parse_deck_effect_segment(
             start_of_game_sources.add(int(start.group("entity_id")))
 
         descriptor = _ENTITY_DETAILS.search(line)
+        created = _ENTITY_CREATE.search(line)
+        numeric_update = _ENTITY_NUMERIC_UPDATE.search(line)
         if descriptor:
             entity_id = int(descriptor.group("entity_id"))
             current_entity_id = entity_id
@@ -188,6 +195,18 @@ def _parse_deck_effect_segment(
                 "creator": previous.get("creator"),
                 "copied_from": previous.get("copied_from"),
             }
+            if name == local_name:
+                local_player_id = int(descriptor.group("player"))
+        elif created or numeric_update:
+            record = created or numeric_update
+            entity_id = int(record.group("entity_id"))
+            current_entity_id = entity_id
+            entity = entities.setdefault(entity_id, {
+                "name": None, "card_id": None, "player": None, "zone": None,
+                "creator": None, "copied_from": None,
+            })
+            if record.group("card_id"):
+                entity["card_id"] = record.group("card_id")
 
         tag = _TAG_VALUE.search(line)
         tag_entity = _TAG_ENTITY_ID.search(line)
@@ -211,6 +230,11 @@ def _parse_deck_effect_segment(
                         pass
                 elif tag.group("tag") == "ZONE":
                     entity["zone"] = tag.group("value")
+                elif tag.group("tag") == "CONTROLLER":
+                    try:
+                        entity["player"] = int(tag.group("value"))
+                    except ValueError:
+                        pass
 
         if "BLOCK_END" in line:
             current_entity_id = None
