@@ -93,10 +93,8 @@ def format_deck_effects(effects: list[object]) -> str:
     """Format detected deck effects with cached card rules text when available."""
     lines: list[str] = []
     for effect in effects:
-        details = [value for value in (effect.trigger, effect.reason) if value]
-        suffix = f" ({', '.join(details)})" if details else ""
         lines.append(
-            f"{effect.source.display_name()} → {effect.generated.display_name()}{suffix}"
+            f"{effect.source.display_name()} → {effect.generated.display_name()}"
         )
         source_text = effect.source.display_text().strip()
         generated_text = effect.generated.display_text().strip()
