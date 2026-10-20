@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from .models import Card
+from .models import Card, DeckEffect
 
 
 _UNDERGROUND = re.compile(r"GameType=GT_UNDERGROUND_ARENA\b")
@@ -136,3 +136,123 @@ def latest_start_of_game_duplicates(path: str | Path) -> list[Card]:
 
     return [Card(card_id, names.get(card_id)) for card_id in copied_ids]
 
+
+
+_ENTITY_DETAILS = re.compile(
+    r"(?:Entity=|Updating Entity=)\\[entityName=(?P<name>.*?) id=(?P<entity_id>\\d+) "
+    r"zone=(?P<zone>\\w+) zonePos=-?\\d+ cardId=(?P<card_id>\\S*) "
+    r"player=(?P<player>\\d+)\\]"
+)
+_CARD_ID_UPDATE = re.compile(r"\\] CardID=(?P<card_id>\\S+)")
+_TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\\S+)")
+_UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
+
+
+def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
+    """Find cards created by another card and placed into the local player's deck.
+
+    The parser correlates Power.log entity IDs, CREATOR/COPIED_FROM_ENTITY_ID,
+    and zone changes. It deliberately returns no inferred effects if it cannot
+    establish the local player's player ID.
+    """
+    path = Path(path)
+    if not path.is_file():
+        return []
+
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    local_name = None
+    for line in lines:
+        identity = _LOCAL_PLAYER.search(line)
+        if identity:
+            candidate = identity.group("player").strip()
+            if candidate not in _UNKNOWN_PLAYERS:
+                local_name = candidate
+                break
+    if local_name is None:
+        return []
+
+    entities: dict[int, dict[str, object]] = {}
+    local_player_id: int | None = None
+    current_entity_id: int | None = None
+    start_of_game_sources: set[int] = set()
+
+    for line in lines:
+        start = _START_OF_GAME.search(line)
+        if start:
+            start_of_game_sources.add(int(start.group("entity_id")))
+
+        descriptor = _ENTITY_DETAILS.search(line)
+        if descriptor:
+            entity_id = int(descriptor.group("entity_id"))
+            current_entity_id = entity_id
+            name = descriptor.group("name")
+            card_id = descriptor.group("card_id")
+            update = _CARD_ID_UPDATE.search(line)
+            if update:
+                card_id = update.group("card_id")
+            previous = entities.get(entity_id, {})
+            entity = {
+                "name": name if name and not name.startswith("UNKNOWN ENTITY") else previous.get("name"),
+                "card_id": card_id or previous.get("card_id"),
+                "player": int(descriptor.group("player")),
+                "zone": descriptor.group("zone"),
+                "creator": previous.get("creator"),
+                "copied_from": previous.get("copied_from"),
+            }
+            entities[entity_id] = entity
+            if name == local_name:
+                local_player_id = int(descriptor.group("player"))
+            continue
+
+        # Some Power.log tag lines omit an entity descriptor and refer to the
+        # entity established by the immediately preceding SHOW_ENTITY block.
+        tag = _TAG_VALUE.search(line)
+        if tag and current_entity_id is not None:
+            entity = entities.get(current_entity_id)
+            if entity is None:
+                continue
+            if tag.group("tag") == "CREATOR":
+                try:
+                    entity["creator"] = int(tag.group("value"))
+                except ValueError:
+                    pass
+            elif tag.group("tag") == "COPIED_FROM_ENTITY_ID":
+                try:
+                    entity["copied_from"] = int(tag.group("value"))
+                except ValueError:
+                    pass
+            elif tag.group("tag") == "ZONE":
+                entity["zone"] = tag.group("value")
+
+    if local_player_id is None:
+        return []
+
+    effects: list[DeckEffect] = []
+    seen_entities: set[int] = set()
+    for entity_id, entity in entities.items():
+        if entity.get("player") != local_player_id or entity.get("zone") != "DECK":
+            continue
+        creator_id = entity.get("creator")
+        copied_from = entity.get("copied_from")
+        source_id = creator_id if isinstance(creator_id, int) else None
+        if source_id is None or source_id not in entities:
+            continue
+        generated_id = entity.get("card_id")
+        source_card_id = entities[source_id].get("card_id")
+        if not isinstance(generated_id, str) or not generated_id:
+            continue
+        if not isinstance(source_card_id, str) or not source_card_id:
+            continue
+        if entity_id in seen_entities:
+            continue
+        source_entity = entities[source_id]
+        source_name = source_entity.get("name")
+        generated_name = entity.get("name")
+        source = Card(source_card_id, source_name if isinstance(source_name, str) else None)
+        generated = Card(generated_id, generated_name if isinstance(generated_name, str) else None)
+        trigger = "START_OF_GAME" if source_id in start_of_game_sources else None
+        reason = "copied" if isinstance(copied_from, int) else "generated"
+        effects.append(DeckEffect(source=source, generated=generated, trigger=trigger, reason=reason))
+        seen_entities.add(entity_id)
+
+    return effects
