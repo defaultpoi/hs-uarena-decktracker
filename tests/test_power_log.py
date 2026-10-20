@@ -183,9 +183,12 @@ D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     BLOCK_END
 D 01:00:01.0000000 GameState.DebugPrintGame() - GameType=GT_UNDERGROUND_ARENA
 D 01:00:01.0000000 GameState.DebugPrintGame() - PlayerID=1, PlayerName=Local#1234
 D 01:00:01.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Mankrik id=14 zone=PLAY zonePos=0 cardId=BAR_721 player=1] CardID=BAR_721
-D 01:00:01.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Updating [entityName=Olgra, Mankrik's Wife id=72 zone=SETASIDE zonePos=0 cardId=BAR_721t player=1] CardID=BAR_721t
+D 01:00:01.0000000 GameState.DebugPrintPower() - FULL_ENTITY - Creating ID=72 CardID=
+D 01:00:01.0000000 GameState.DebugPrintPower() -         tag=ZONE value=SETASIDE
+D 01:00:01.0000000 GameState.DebugPrintPower() -         tag=CONTROLLER value=1
+D 01:00:01.0000000 GameState.DebugPrintPower() -     SHOW_ENTITY - Updating Entity=72 CardID=BAR_721t
 D 01:00:01.0000000 GameState.DebugPrintPower() -         tag=CREATOR value=14
-D 01:00:01.0000000 GameState.DebugPrintPower() -     TAG_CHANGE Entity=[entityName=Olgra, Mankrik's Wife id=72 zone=SETASIDE zonePos=0 cardId=BAR_721t player=1] tag=ZONE value=DECK
+D 01:00:01.0000000 GameState.DebugPrintPower() -     TAG_CHANGE Entity=72 tag=ZONE value=DECK
 """,
         encoding="utf-8",
     )
