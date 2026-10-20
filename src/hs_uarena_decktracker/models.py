@@ -38,6 +38,16 @@ class Redraft:
     discarded_complete: bool = False
 
 
+@dataclass(frozen=True)
+class DeckEffect:
+    """A card effect that creates or copies a card into the player's deck."""
+
+    source: Card
+    generated: Card
+    trigger: str | None = None
+    reason: str | None = None
+
+
 @dataclass
 class ArenaRun:
     deck_id: str | None = None

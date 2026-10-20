@@ -99,3 +99,35 @@ D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - TAG_CHANGE Entity=[entityNa
         "Kargath Bladefist",
         "Mankrik",
     ]
+
+
+def test_latest_deck_effects_tracks_copies_and_generated_cards_for_local_player(tmp_path):
+    from hs_uarena_decktracker.power_log import latest_deck_effects
+
+    power = tmp_path / "Power.log"
+    power.write_text(
+        """\\
+D 01:00:00.0000000 GameState.DebugPrintEntityChoices() - id=1 Player=Local#1234 TaskList=1 ChoiceType=MULLIGAN CountMin=0 CountMax=5
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - FULL_ENTITY - Creating ID=1 CardID=HERO_01
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Local#1234 id=1 zone=PLAY zonePos=0 cardId=HERO_01 player=1] CardID=HERO_01
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() - BLOCK_START BlockType=TRIGGER Entity=[entityName=Chainbreaker Hogger id=14 zone=DECK zonePos=0 cardId=JAIL_384 player=1] EffectCardId=x EffectIndex=1 Target=0 SubOption=-1 TriggerKeyword=START_OF_GAME_KEYWORD
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=72 zone=DECK zonePos=0 cardId= player=1] CardID=BT_123
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -         tag=COPIED_FROM_ENTITY_ID value=33
+D 01:00:00.0000000 PowerTaskList.DebugPrintPower() -     BLOCK_END
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Mankrik id=80 zone=PLAY zonePos=0 cardId=BAR_721 player=1] CardID=BAR_721
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=81 zone=DECK zonePos=0 cardId= player=1] CardID=BAR_721t
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=80
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=ZONE value=DECK
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() - SHOW_ENTITY - Updating Entity=[entityName=Opponent generated id=90 zone=DECK zonePos=0 cardId=BT_123 player=2] CardID=BT_123
+D 01:00:01.0000000 PowerTaskList.DebugPrintPower() -         tag=CREATOR value=14
+""",
+        encoding="utf-8",
+    )
+
+    effects = latest_deck_effects(power)
+    assert [(e.source.card_id, e.generated.card_id, e.reason) for e in effects] == [
+        ("JAIL_384", "BT_123", "copied"),
+        ("BAR_721", "BAR_721t", "generated"),
+    ]
+    assert effects[0].trigger == "START_OF_GAME"

@@ -90,12 +90,19 @@ def format_run_progress(run: ArenaRun) -> str:
 
 
 def format_deck_effects(effects: list[object]) -> str:
-    """Format generated deck cards as compact source → generated entries."""
-    return "\n".join(
-        f"{effect.source.display_name()} → {effect.generated.display_name()}"
-        for effect in effects
-    ) or "No generated deck effects detected"
-
+    """Format detected deck effects with cached card rules text when available."""
+    lines: list[str] = []
+    for effect in effects:
+        lines.append(
+            f"{effect.source.display_name()} → {effect.generated.display_name()}"
+        )
+        source_text = effect.source.display_text().strip()
+        generated_text = effect.generated.display_text().strip()
+        if source_text:
+            lines.append(f"  Source: {source_text}")
+        if generated_text:
+            lines.append(f"  Added card: {generated_text}")
+    return "\n".join(lines) or "No generated deck effects detected"
 
 def format_deck(cards: tuple[Card, ...], start_of_game_duplicates: list[Card] | None = None) -> str:
     """Format a deck compactly, grouping duplicate cards."""

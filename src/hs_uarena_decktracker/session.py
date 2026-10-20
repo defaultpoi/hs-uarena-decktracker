@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
+
+from .card_db import CardDatabase
 
 from .arena_log import ArenaLogParser
 from .models import ArenaRun
@@ -9,6 +12,7 @@ from .power_log import (
     is_underground_arena,
     latest_result,
     latest_start_of_game_duplicates,
+    latest_deck_effects,
 )
 
 
@@ -42,6 +46,24 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         is_underground_arena(session / "Power.log")
         for session in matching
     )
+    card_db = CardDatabase()
+    try:
+        card_db.load()
+    except (OSError, ValueError):
+        card_db = None
+
+    def enrich(card):
+        if card_db is None:
+            return card
+        data = card_db.get(card.card_id)
+        if data is None:
+            return card
+        return replace(
+            card,
+            name=card.name or data.name,
+            text=card.text or data.text,
+        )
+
     run.game_results = [
         result
         for session in matching
@@ -52,8 +74,13 @@ def parse_sessions(session_dirs: list[str | Path]) -> ArenaRun:
         result = latest_result(session / "Power.log")
         if result is not None:
             run.last_result = result
-            run.start_of_game_duplicates = latest_start_of_game_duplicates(
-                session / "Power.log"
-            )
+            run.start_of_game_duplicates = [
+                enrich(card)
+                for card in latest_start_of_game_duplicates(session / "Power.log")
+            ]
+            run.deck_effects = [
+                replace(effect, source=enrich(effect.source), generated=enrich(effect.generated))
+                for effect in latest_deck_effects(session / "Power.log")
+            ]
             break
     return run

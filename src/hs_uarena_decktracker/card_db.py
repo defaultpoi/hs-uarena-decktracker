@@ -166,7 +166,7 @@ class CardDatabase:
 
     @staticmethod
     def _build_from_url(url: str) -> str | None:
-        match = re.search(r"/v1/(\\d+)/", url)
+        match = re.search(r"/v1/(\d+)/", url)
         return match.group(1) if match else None
 
 
