@@ -139,7 +139,7 @@ def latest_start_of_game_duplicates(path: str | Path) -> list[Card]:
 
 
 _ENTITY_DETAILS = re.compile(
-    r"(?:Entity=|Updating Entity=)\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
+    r"(?:Entity=|Updating Entity=|Updating )\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
     r"zone=(?P<zone>\w+) zonePos=-?\d+ cardId=(?P<card_id>\S*) "
     r"player=(?P<player>\d+)\]"
 )
@@ -202,10 +202,10 @@ def latest_deck_effects(path: str | Path) -> list[DeckEffect]:
             entities[entity_id] = entity
             if name == local_name:
                 local_player_id = int(descriptor.group("player"))
-            continue
 
-        # Some Power.log tag lines omit an entity descriptor and refer to the
-        # entity established by the immediately preceding SHOW_ENTITY block.
+        # Process tags even when the same line contains an entity descriptor,
+        # as happens with TAG_CHANGE Entity=[...] entries.
+        tag = _TAG_VALUE.search(line)
         tag = _TAG_VALUE.search(line)
         if tag and current_entity_id is not None:
             entity = entities.get(current_entity_id)
