@@ -139,12 +139,12 @@ def latest_start_of_game_duplicates(path: str | Path) -> list[Card]:
 
 
 _ENTITY_DETAILS = re.compile(
-    r"(?:Entity=|Updating Entity=)\\[entityName=(?P<name>.*?) id=(?P<entity_id>\\d+) "
-    r"zone=(?P<zone>\\w+) zonePos=-?\\d+ cardId=(?P<card_id>\\S*) "
-    r"player=(?P<player>\\d+)\\]"
+    r"(?:Entity=|Updating Entity=)\[entityName=(?P<name>.*?) id=(?P<entity_id>\d+) "
+    r"zone=(?P<zone>\w+) zonePos=-?\d+ cardId=(?P<card_id>\S*) "
+    r"player=(?P<player>\d+)\]"
 )
-_CARD_ID_UPDATE = re.compile(r"\\] CardID=(?P<card_id>\\S+)")
-_TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\\S+)")
+_CARD_ID_UPDATE = re.compile(r"\] CardID=(?P<card_id>\S+)")
+_TAG_VALUE = re.compile(r"tag=(?P<tag>CREATOR|COPIED_FROM_ENTITY_ID|ZONE) value=(?P<value>\S+)")
 _UNKNOWN_PLAYERS = {"UNKNOWN HUMAN PLAYER", "UNKNOWN PLAYER"}
 
 
